@@ -3,98 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventaire Expert - Romain</title>
+    <title>Inventaire Pro - Romain</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; }
         
-        /* Onglets */
         .tabs { display: flex; background: white; position: sticky; top: 48px; z-index: 150; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
 
-        .content { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .content { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
+        .content.active { display: block; }
         
-        /* Mise en page horizontale des compteurs */
         .product-item { background: white; margin-bottom: 10px; padding: 12px 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .product-info { flex: 1; font-weight: 600; color: #333; }
         .controls-row { display: flex; align-items: center; background: #f8f8f8; border-radius: 10px; padding: 2px; }
         .btn-qty { width: 40px; height: 40px; border: none; background: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: var(--primary); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; color: #222; }
+        .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
 
-        /* Dashboard Page */
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
-        .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .dash-nav { display: flex; gap: 5px; padding: 10px; overflow-x: auto; background: white; }
-        .btn-filter { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; background: white; white-space: nowrap; font-size: 0.8rem; font-weight: bold; }
+        .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; }
+        .dash-nav { display: flex; gap: 5px; padding: 10px; overflow-x: auto; background: white; position: sticky; top:50px; }
+        .btn-filter { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 0.8rem; font-weight: bold; white-space: nowrap; }
         .btn-filter.active { background: var(--secondary); color: white; border-color: var(--secondary); }
         
-        .history-card { background: white; margin: 10px; padding: 15px; border-radius: 12px; border-left: 5px solid var(--secondary); }
-        .stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
+        .history-card { background: white; margin: 10px; padding: 15px; border-radius: 12px; border-left: 5px solid var(--secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
         
-        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; }
+        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; border-radius: 8px; }
+        .cat-fruits { background: #fff3e0; color: var(--fruit); }
+        .cat-legumes { background: #e8f5e9; color: var(--vege); }
         
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 10px; font-size: 1rem; cursor: pointer; }
-        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 100; box-sizing: border-box;}
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
+        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 100; box-sizing: border-box; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<header id="main-header">STOCKS : ROMAIN</header>
+<header>STOCKS : ROMAIN</header>
 
-<div class="tabs" id="main-tabs">
-    <div class="tab active" onclick="switchTab('st-selve')">St Selve</div>
-    <div class="tab" onclick="switchTab('villenave')">Villenave</div>
-    <div class="tab" onclick="switchTab('admin')">⚙️ Admin</div>
+<div class="tabs">
+    <div class="tab active" id="tab-st-selve" onclick="switchTab('st-selve')">St Selve</div>
+    <div class="tab" id="tab-villenave" onclick="switchTab('villenave')">Villenave</div>
+    <div class="tab" id="tab-admin" onclick="switchTab('admin')">⚙️ Admin</div>
 </div>
 
-<div id="view-stock" class="content">
-    <div id="product-list">Connexion...</div>
+<div id="view-stock" class="content active">
+    <div id="product-list">Chargement...</div>
 </div>
 
-<div id="view-admin" class="content hidden">
+<div id="view-admin" class="content">
     <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER LES STOCKS DU JOUR</button>
     <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 OUVRIR LE DASHBOARD COMPLET</button>
     
-    <div style="background:white; padding:15px; border-radius:15px; margin-top:20px; border:1px solid #ddd;">
-        <h4>Gestion Catalogue</h4>
-        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #eee; box-sizing: border-box;">
-        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #eee;">
+    <div style="background:white; padding:20px; border-radius:15px; border:1px solid #ddd; margin-top:10px;">
+        <h3 style="margin-top:0;">Configuration</h3>
+        <label style="font-size:0.8rem; font-weight:bold;">NOM DU PRODUIT</label>
+        <input type="text" id="new-product-name" placeholder="Ex: Banane" style="width:100%; padding:12px; margin:8px 0 15px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+        
+        <label style="font-size:0.8rem; font-weight:bold;">CATÉGORIE</label>
+        <select id="new-product-cat" style="width:100%; padding:12px; margin:8px 0 15px 0; border-radius:8px; border:1px solid #ccc;">
             <option value="Fruit">🍎 Fruit</option>
-            <option value="Légume">Légume</option>
+            <option value="Légume">🥦 Légume</option>
         </select>
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px;">Ajouter au catalogue</button>
-        <div id="config-list" style="margin-top:15px;"></div>
+        
+        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER AU CATALOGUE</button>
+        
+        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+        <div id="config-list"></div>
     </div>
 </div>
 
 <div id="view-dashboard">
     <div class="dash-header">
-        <span>📊 TABLEAU DE BORD</span>
-        <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Retour</button>
+        <span>📊 HISTORIQUE</span>
+        <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Fermer</button>
     </div>
     <div class="dash-nav">
         <button class="btn-filter active" onclick="filterDash('all', this)">Vue d'ensemble</button>
         <button class="btn-filter" onclick="filterDash('Fruit', this)">Détails Fruits</button>
         <button class="btn-filter" onclick="filterDash('Légume', this)">Détails Légumes</button>
     </div>
-    <div id="dash-content" style="padding:10px;"></div>
+    <div id="dash-content"></div>
 </div>
 
 <div class="footer" id="footer-main">
-    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER LE PDF ACTUEL</button>
+    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER PDF ACTUEL</button>
 </div>
 
 <script>
-    // --- CONFIGURATION FIREBASE ---
-    const firebaseConfig = {
-        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" 
-    };
+    const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const KEY_HASH = "Um9tYWluMzMxNDAq"; 
@@ -103,52 +106,49 @@
     let dashFilter = 'all';
     let globalData = { products: [], stocks: {}, history: {} };
 
-    // --- LOGIQUE SYNCHRO ---
     db.ref('/').on('value', (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-            globalData.products = val.products || [];
-            globalData.stocks = val.stocks || {};
-            globalData.history = val.history || {};
-            renderStock();
-            if(!document.getElementById('view-admin').classList.contains('hidden')) renderAdmin();
-            if(document.getElementById('view-dashboard').style.display === 'block') renderDashContent();
-        }
+        const val = snapshot.val() || {};
+        globalData.products = val.products || [];
+        globalData.stocks = val.stocks || {};
+        globalData.history = val.history || {};
+        renderStock();
+        renderAdmin();
+        if(document.getElementById('view-dashboard').style.display === 'block') renderDashContent();
     });
-
-    function isSessionValid() {
-        const sessionTime = localStorage.getItem('adminSession');
-        return sessionTime && (new Date().getTime() - parseInt(sessionTime)) / 1000 / 60 < 20;
-    }
 
     function switchTab(tab) {
         if (tab === 'admin') {
             if (isSessionValid() || checkCode()) {
-                updateTabUI(tab);
-                document.getElementById('view-stock').classList.add('hidden');
-                document.getElementById('view-admin').classList.remove('hidden');
+                showView('view-admin');
+                updateTabUI('tab-admin');
                 document.getElementById('footer-main').classList.add('hidden');
-                renderAdmin();
             }
         } else {
             currentSite = tab;
-            updateTabUI(tab);
-            document.getElementById('view-stock').classList.remove('hidden');
-            document.getElementById('view-admin').classList.add('hidden');
+            showView('view-stock');
+            updateTabUI('tab-' + tab);
             document.getElementById('footer-main').classList.remove('hidden');
             renderStock();
         }
     }
 
-    function updateTabUI(tab) {
-        document.querySelectorAll('.tab').forEach(t => {
-            t.classList.remove('active');
-            if(t.innerText.toLowerCase().includes(tab.replace('-',' '))) t.classList.add('active');
-        });
+    function showView(viewId) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    function updateTabUI(tabId) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function isSessionValid() {
+        const s = localStorage.getItem('adminSession');
+        return s && (new Date().getTime() - parseInt(s)) / 60000 < 20;
     }
 
     function checkCode() {
-        const p = prompt("Code Administrateur :");
+        const p = prompt("Code Admin :");
         if (p && btoa(p) === KEY_HASH) {
             localStorage.setItem('adminSession', new Date().getTime());
             return true;
@@ -170,7 +170,7 @@
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
                     const div = document.createElement('div');
                     div.className = 'product-item';
-                    div.innerHTML = `<div class="product-info">${p.n}</div>
+                    div.innerHTML = `<b>${p.n}</b>
                         <div class="controls-row">
                             <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
                             <div class="qty-val">${qty}</div>
@@ -188,13 +188,8 @@
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
-    // --- DASHBOARD LOGIQUE ---
-    function openDashboard() {
-        document.getElementById('view-dashboard').style.display = 'block';
-        renderDashContent();
-    }
+    function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
     function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
-
     function filterDash(type, btn) {
         dashFilter = type;
         document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
@@ -204,87 +199,61 @@
 
     function renderDashContent() {
         const container = document.getElementById('dash-content');
-        if(!globalData.history || Object.keys(globalData.history).length === 0) {
-            container.innerHTML = "<div style='text-align:center; padding:40px;'>Aucun historique disponible.</div>";
-            return;
-        }
-
         const keys = Object.keys(globalData.history).sort().reverse();
+        if(keys.length === 0) { container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucune donnée.</p>"; return; }
+        
         let html = "";
-
         keys.forEach(k => {
             const entry = globalData.history[k];
-            let totalS = 0, totalV = 0;
-            let detailsHtml = "";
-
-            // Calcul et filtrage des détails
+            let tS = 0, tV = 0, details = "";
             globalData.products.forEach(p => {
                 const qS = (entry.data[p.n] && entry.data[p.n]['st-selve']) || 0;
                 const qV = (entry.data[p.n] && entry.data[p.n]['villenave']) || 0;
-                
-                if(dashFilter === 'all' || p.c === dashFilter) {
-                    if(qS > 0 || qV > 0) {
-                        detailsHtml += `<div class="stat-row">
-                            <span>${p.n}</span>
-                            <span><b>${qS}</b> / <b>${qV}</b></span>
-                        </div>`;
-                    }
+                if((dashFilter === 'all' || p.c === dashFilter) && (qS > 0 || qV > 0)) {
+                    details += `<div class="stat-row"><span>${p.n}</span><span>${qS} / ${qV}</span></div>`;
                 }
-                totalS += qS; totalV += qV;
+                tS += qS; tV += qV;
             });
-
             html += `<div class="history-card">
-                <div style="font-weight:bold; margin-bottom:10px; color:#666; font-size:0.8rem;">
-                    📅 ${entry.date} à ${entry.heure}
-                </div>
-                ${dashFilter === 'all' ? `
-                    <div style="display:flex; justify-content:space-around; background:#f0f4f8; padding:10px; border-radius:8px; margin-bottom:10px; text-align:center;">
-                        <div><small>St Selve</small><br><b>${totalS}</b></div>
-                        <div><small>Villenave</small><br><b>${totalV}</b></div>
-                    </div>
-                ` : detailsHtml || "Aucun produit dans cette catégorie."}
-                ${dashFilter !== 'all' ? '' : `<div style="text-align:right; font-size:0.7rem; color:var(--secondary);" onclick="alert('Basculez sur Détails pour voir les produits')">Voir les détails...</div>`}
+                <div style="font-size:0.8rem; color:#888; margin-bottom:8px;">📅 ${entry.date} - ${entry.heure}</div>
+                ${dashFilter === 'all' ? `<div style="display:flex; justify-content:space-around; background:#f4f4f4; padding:8px; border-radius:8px;">
+                    <div>St Selve: <b>${tS}</b></div><div>Villenave: <b>${tV}</b></div>
+                </div>` : details}
             </div>`;
         });
         container.innerHTML = html;
     }
 
     function validateStocks() {
-        if(!confirm("Valider l'état actuel des stocks dans le Dashboard ?")) return;
+        if(!confirm("Valider les stocks ?")) return;
         const now = new Date();
-        const record = {
+        db.ref('history/' + now.getTime()).set({
             date: now.toLocaleDateString('fr-FR'),
-            heure: now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+            heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             data: globalData.stocks
-        };
-        db.ref('history/' + now.getTime()).set(record).then(() => alert("Validation réussie !"));
+        }).then(() => alert("Validé !"));
     }
 
     function addProduct() {
         const n = document.getElementById('new-product-name').value.trim();
         const c = document.getElementById('new-product-cat').value;
-        if(n) { 
-            globalData.products.push({n,c}); 
-            db.ref('products').set(globalData.products); 
-            document.getElementById('new-product-name').value=''; 
-        }
+        if(n) { globalData.products.push({n,c}); db.ref('products').set(globalData.products); document.getElementById('new-product-name').value=''; }
     }
 
     function renderAdmin() {
         const container = document.getElementById('config-list');
-        container.innerHTML = '<p style="font-size:0.8rem; color:#888;">Catalogue actuel :</p>';
+        container.innerHTML = '<p style="font-size:0.8rem; margin-bottom:5px;">Catalogue actuel :</p>';
         globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
             const div = document.createElement('div');
             div.style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.85rem";
-            div.innerHTML = `<span>${p.n} <small>(${p.c})</small></span><span style="color:red" onclick="removeProduct('${p.n}')">Supprimer</span>`;
+            div.innerHTML = `<span>${p.n} <small>(${p.c})</small></span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer</span>`;
             container.appendChild(div);
         });
     }
 
     function removeProduct(name) {
-        if(confirm("Supprimer du catalogue ?")) {
-            const newP = globalData.products.filter(p => p.n !== name);
-            db.ref('products').set(newP);
+        if(confirm("Supprimer ?")) {
+            db.ref('products').set(globalData.products.filter(p => p.n !== name));
             db.ref('stocks/' + name).remove();
         }
     }
@@ -295,7 +264,7 @@
             const s = globalData.stocks[p.n] || { 'st-selve':0, 'villenave':0 };
             if(s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.n, p.c, s['st-selve'], s['villenave']]);
         });
-        doc.text("INVENTAIRE ACTUEL - " + new Date().toLocaleDateString(), 14, 15);
+        doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
         doc.autoTable({ head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows, startY: 20 });
         doc.save("Inventaire.pdf");
     }
