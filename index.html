@@ -3,35 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventaire Synchro - Romain</title>
+    <title>Inventaire Pro - Romain</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --primary: #2e7d32; --danger: #d32f2f; --bg: #f4f7f6; --fruit-color: #e67e22; --vege-color: #27ae60; }
+        :root { --primary: #2e7d32; --secondary: #1976d2; --danger: #d32f2f; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
         .tabs { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #888; text-transform: uppercase; }
+        .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
         .content { padding: 15px; max-width: 600px; margin: 0 auto; }
-        .category-header { padding: 10px; margin: 20px 0 10px 0; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
-        .cat-fruits { background: #fff3e0; color: var(--fruit-color); border-left: 5px solid var(--fruit-color); }
-        .cat-legumes { background: #e8f5e9; color: var(--vege-color); border-left: 5px solid var(--vege-color); }
+        .category-header { padding: 10px; margin: 20px 0 10px 0; border-radius: 8px; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+        .cat-fruits { background: #fff3e0; color: var(--fruit); border-left: 5px solid var(--fruit); }
+        .cat-legumes { background: #e8f5e9; color: var(--vege); border-left: 5px solid var(--vege); }
         .product-item { background: white; margin-bottom: 8px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .controls { display: flex; align-items: center; gap: 15px; }
-        .btn-qty { width: 44px; height: 44px; border-radius: 10px; border: none; background: #eee; font-size: 1.4rem; font-weight: bold; color: var(--primary); cursor: pointer; }
+        .btn-qty { width: 44px; height: 44px; border-radius: 10px; border: none; background: #eee; font-size: 1.4rem; color: var(--primary); cursor: pointer; }
         .qty-val { min-width: 30px; text-align: center; font-size: 1.2rem; font-weight: 800; }
-        .admin-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; box-sizing: border-box; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); }
-        .btn-pdf-large { width: 100%; max-width: 500px; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .admin-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-size: 1rem; }
+        .btn-validate { background: var(--primary); color: white; }
+        .btn-stats { background: var(--secondary); color: white; }
+        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 99; }
         .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<header>STOCKS TEMPS RÉEL : ROMAIN</header>
+<header>GESTION STOCKS & STATS</header>
 
 <div class="tabs">
     <div class="tab active" onclick="switchTab('st-selve')">St Selve</div>
@@ -45,54 +48,57 @@
 
 <div id="view-admin" class="content hidden">
     <div class="admin-section">
+        <button class="btn-main btn-validate" onclick="validateStocks()">✅ VALIDER LES STOCKS DU JOUR</button>
+        <button class="btn-main btn-stats" onclick="toggleStats()">📊 VOIR LE DASHBOARD</button>
+    </div>
+
+    <div id="dashboard" class="admin-section hidden">
+        <h4>Dashboard - Historique</h4>
+        <div id="stats-content">Aucune donnée validée.</div>
+        <button onclick="toggleStats()" style="margin-top:10px; padding:5px;">Fermer</button>
+    </div>
+
+    <div class="admin-section">
         <h4>Ajouter un produit</h4>
-        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
-        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="text" id="new-product-name" placeholder="Nom" style="width:100%; padding:10px; margin-bottom:10px;">
+        <select id="new-product-cat" style="width:100%; padding:10px; margin-bottom:10px;">
             <option value="Fruit">🍎 Fruit</option>
             <option value="Légume">🥦 Légume</option>
         </select>
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold;">Ajouter</button>
+        <button onclick="addProduct()" style="width:100%; padding:10px; background:#444; color:white; border:none; border-radius:5px;">Enregistrer</button>
     </div>
     <div id="config-list" class="admin-section"></div>
 </div>
 
 <div class="footer" id="footer-main">
-    <button class="btn-pdf-large" onclick="generatePDF()">📄 GÉNÉRER LE PDF</button>
+    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER PDF</button>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- CONFIGURATION FIREBASE ---
     const firebaseConfig = {
-        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/"
+        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" 
     };
-    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const ADMIN_CODE_B64 = "Um9tYWluMzMxNDAq"; // Romain33140*
+    const KEY_HASH = "Um9tYWluMzMxNDAq"; // Romain33140*
 
     let currentSite = 'st-selve';
-    let globalData = { products: [], stocks: {} };
+    let globalData = { products: [], stocks: {}, history: {} };
 
-    // Liste par défaut si la base est vide
-    const defaultProducts = [
-        { n: "Banane", c: "Fruit" }, { n: "Pomme", c: "Fruit" },
-        { n: "Carotte", c: "Légume" }, { n: "Salade", c: "Légume" }
-    ];
-
-    // --- SYNCHRONISATION ---
+    // --- ECOUTE TEMPS RÉEL ---
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val();
-        if (!val || !val.products) {
-            // Si vide, on injecte les produits par défaut
-            db.ref('products').set(defaultProducts);
-        } else {
+        if (val) {
             globalData.products = val.products || [];
             globalData.stocks = val.stocks || {};
+            globalData.history = val.history || {};
             renderStock();
-            if(!document.getElementById('view-admin').classList.contains('hidden')) renderAdmin();
+            if(!document.getElementById('view-admin').classList.contains('hidden')) {
+                renderAdmin();
+                renderStats();
+            }
         }
-    }, (error) => {
-        document.getElementById('product-list').innerHTML = "Erreur : Vérifiez les règles de sécurité Firebase (Mode Test).";
     });
 
     function isSessionValid() {
@@ -101,20 +107,20 @@
     }
 
     function switchTab(tab) {
-        const tabs = document.querySelectorAll('.tab');
         if (tab === 'admin') {
             if (isSessionValid() || checkCode()) {
-                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 event.currentTarget.classList.add('active');
                 document.getElementById('view-stock').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
                 document.getElementById('footer-main').classList.add('hidden');
                 renderAdmin();
+                renderStats();
             }
         } else {
-            tabs.forEach(t => t.classList.remove('active'));
-            event.currentTarget.classList.add('active');
             currentSite = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
             document.getElementById('view-stock').classList.remove('hidden');
             document.getElementById('view-admin').classList.add('hidden');
             document.getElementById('footer-main').classList.remove('hidden');
@@ -123,13 +129,12 @@
     }
 
     function checkCode() {
-        const pass = prompt("Code Admin :");
-        if (pass && btoa(pass) === ADMIN_CODE_B64) {
+        const p = prompt("Code Admin :");
+        if (p && btoa(p) === KEY_HASH) {
             localStorage.setItem('adminSession', new Date().getTime());
             return true;
         }
-        alert("Accès refusé");
-        return false;
+        alert("Accès refusé"); return false;
     }
 
     function renderStock() {
@@ -160,31 +165,71 @@
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
+    // --- GESTION HISTORIQUE / DASHBOARD ---
+    function validateStocks() {
+        if(!confirm("Valider les stocks actuels dans l'historique ?")) return;
+        const now = new Date();
+        const timestamp = now.getTime();
+        const dateStr = now.toLocaleDateString();
+        const timeStr = now.toLocaleTimeString();
+
+        const record = {
+            date: dateStr,
+            heure: timeStr,
+            data: JSON.parse(JSON.stringify(globalData.stocks))
+        };
+
+        db.ref('history/' + timestamp).set(record).then(() => {
+            alert("Stocks validés et enregistrés !");
+        });
+    }
+
+    function toggleStats() {
+        document.getElementById('dashboard').classList.toggle('hidden');
+        renderStats();
+    }
+
+    function renderStats() {
+        const container = document.getElementById('stats-content');
+        if(!globalData.history || Object.keys(globalData.history).length === 0) {
+            container.innerHTML = "Aucune donnée enregistrée.";
+            return;
+        }
+        
+        let html = "<table><tr><th>Date</th><th>St Selve</th><th>Villenave</th></tr>";
+        const keys = Object.keys(globalData.history).reverse(); // Plus récent en haut
+        
+        keys.slice(0, 10).forEach(key => { // Affiche les 10 dernières validations
+            const h = globalData.history[key];
+            let totalS = 0, totalV = 0;
+            Object.values(h.data).forEach(s => { totalS += s['st-selve']; totalV += s['villenave']; });
+            html += `<tr><td>${h.date} <small>${h.heure}</small></td><td>${totalS} art.</td><td>${totalV} art.</td></tr>`;
+        });
+        html += "</table>";
+        container.innerHTML = html;
+    }
+
     function addProduct() {
         const n = document.getElementById('new-product-name').value.trim();
         const c = document.getElementById('new-product-cat').value;
-        if(n) {
-            globalData.products.push({ n, c });
-            db.ref('products').set(globalData.products);
-            document.getElementById('new-product-name').value = '';
-        }
+        if(n) { globalData.products.push({n,c}); db.ref('products').set(globalData.products); document.getElementById('new-product-name').value=''; }
     }
 
     function renderAdmin() {
         const container = document.getElementById('config-list');
-        container.innerHTML = '<h4>Gérer les produits</h4>';
+        container.innerHTML = '<h4>Liste des produits</h4>';
         globalData.products.forEach(p => {
             const div = document.createElement('div');
-            div.style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee";
-            div.innerHTML = `<span>[${p.c}] ${p.n}</span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer 🗑️</span>`;
+            div.style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; font-size:0.9rem;";
+            div.innerHTML = `<span>${p.n}</span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">🗑️</span>`;
             container.appendChild(div);
         });
     }
 
     function removeProduct(name) {
-        if(confirm("Supprimer pour tout le monde ?")) {
-            const newProd = globalData.products.filter(p => p.n !== name);
-            db.ref('products').set(newProd);
+        if(confirm("Supprimer ?")) {
+            const newP = globalData.products.filter(p => p.n !== name);
+            db.ref('products').set(newP);
             db.ref('stocks/' + name).remove();
         }
     }
@@ -201,4 +246,3 @@
 </script>
 </body>
 </html>
-
