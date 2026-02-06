@@ -13,27 +13,24 @@
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; --danger: #d32f2f; }
         
-        /* Désactivation du zoom sur mobile et sélection de texte */
+        /* Anti-Zoom iPhone & Ergonomie */
         body { 
             font-family: -apple-system, sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding-bottom: 90px; 
-            touch-action: manipulation; 
-            -webkit-user-select: none; 
-            user-select: none; 
+            background: var(--bg); margin: 0; padding-bottom: 90px; 
+            touch-action: manipulation; -webkit-user-select: none; user-select: none; 
         }
 
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; }
         .tabs { display: flex; background: white; position: sticky; top: 48px; z-index: 150; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
+        
         .content { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
         .content.active { display: block; }
 
-        /* Boutons avec touch-action pour éviter le zoom sur clic rapide */
         .product-item { background: white; margin-bottom: 10px; padding: 12px 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .controls-row { display: flex; align-items: center; background: #f8f8f8; border-radius: 10px; padding: 2px; }
+        
         .btn-qty { 
             width: 44px; height: 44px; border: none; background: white; border-radius: 8px; 
             font-size: 1.4rem; font-weight: bold; color: var(--primary); 
@@ -41,25 +38,20 @@
         }
         .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
         
-        /* Dashboard & Charts */
+        /* Dashboard */
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
         .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
-        .dash-filters { background: white; padding: 10px; position: sticky; top: 48px; z-index: 305; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .chart-container { background: white; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 280px; }
         
-        .filter-group { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 5px; }
-        .btn-filter { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
-        .btn-filter.active { background: var(--secondary); color: white; border-color: var(--secondary); }
         .stat-card { background: white; margin: 10px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; color: #666; }
+        .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; }
         .stat-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
-        .total-row { background: #f0f7ff; font-weight: bold; }
-        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; margin: 5px 10px; border-radius: 10px; border: 1px solid #eee; font-size: 0.8rem; }
-        .btn-delete-archive { background: #ffebee; color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; }
-        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; border-radius: 8px; }
+        
+        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; border-radius: 8px; }
         .cat-fruits { background: #fff3e0; color: var(--fruit); }
         .cat-legumes { background: #e8f5e9; color: var(--vege); }
+        
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
         .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 100; box-sizing: border-box; }
         .hidden { display: none !important; }
@@ -76,41 +68,19 @@
 </div>
 
 <div id="view-stock" class="content active">
-    <div id="product-list">Chargement...</div>
+    <div id="product-list">Connexion en cours...</div>
 </div>
 
 <div id="view-admin" class="content">
     <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER ET ARCHIVER LE STOCK</button>
     <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 DASHBOARD & CUMULS</button>
-    
-    <div style="background:white; padding:20px; border-radius:15px; border:1px solid #ddd;">
-        <h3 style="margin:0 0 15px 0;">Catalogue</h3>
-        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;">
-            <option value="Fruit">🍎 Fruit</option>
-            <option value="Légume">🥦 Légume</option>
-        </select>
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER</button>
-        <div id="config-list" style="margin-top:20px;"></div>
-    </div>
+    <div id="config-list"></div>
 </div>
 
 <div id="view-dashboard">
     <div class="dash-header">
-        <span>📊 ANALYSE PAR PRODUIT</span>
+        <span>📊 ANALYSE</span>
         <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Retour</button>
-    </div>
-    <div class="dash-filters">
-        <div class="filter-group">
-            <button class="btn-filter active" onclick="setPeriod('day', this)">Aujourd'hui</button>
-            <button class="btn-filter" onclick="setPeriod('week', this)">7 j</button>
-            <button class="btn-filter" onclick="setPeriod('month', this)">Mois</button>
-        </div>
-        <div class="filter-group">
-            <button class="btn-filter active" onclick="setCatFilter('all', this)">Tout</button>
-            <button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits</button>
-            <button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes</button>
-        </div>
     </div>
     <div class="chart-container"><canvas id="myPieChart"></canvas></div>
     <div id="dash-results"></div>
@@ -122,46 +92,76 @@
 
 <script>
     const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
     const KEY_HASH = "Um9tYWluMzMxNDAq"; 
 
     let currentSite = 'st-selve';
     let globalData = { products: [], stocks: {}, history: {} };
-    let filterPeriod = 'day';
-    let filterCat = 'all';
     let myChart = null;
 
+    // --- SYNCHRONISATION ---
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         globalData.products = val.products || [];
         globalData.stocks = val.stocks || {};
         globalData.history = val.history || {};
         renderStock();
-        renderAdmin();
-        if(document.getElementById('view-dashboard').style.display === 'block') renderDashContent();
+        if(document.getElementById('view-admin').classList.contains('active')) renderAdmin();
+    }, (error) => {
+        document.getElementById('product-list').innerHTML = "Erreur de connexion. Vérifiez internet.";
     });
 
     function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        
         if (tab === 'admin') {
-            if (isSessionValid() || checkCode()) { showView('view-admin'); updateTabUI('tab-admin'); document.getElementById('footer-main').classList.add('hidden'); }
+            if (isSessionValid() || checkCode()) {
+                showView('view-admin');
+                document.getElementById('footer-main').classList.add('hidden');
+                renderAdmin();
+            } else {
+                switchTab(currentSite); // Retour si echec code
+            }
         } else {
-            currentSite = tab; showView('view-stock'); updateTabUI('tab-' + tab); document.getElementById('footer-main').classList.remove('hidden'); renderStock();
+            currentSite = tab;
+            showView('view-stock');
+            document.getElementById('footer-main').classList.remove('hidden');
+            renderStock();
         }
     }
 
-    function isSessionValid() { const s = localStorage.getItem('adminSession'); return s && (new Date().getTime() - parseInt(s)) / 60000 < 20; }
-    function checkCode() { const p = prompt("Code Admin :"); if (p && btoa(p) === KEY_HASH) { localStorage.setItem('adminSession', new Date().getTime()); return true; } alert("Accès refusé"); return false; }
-    function showView(id) { document.querySelectorAll('.content').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    function updateTabUI(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function isSessionValid() { 
+        const s = localStorage.getItem('adminSession'); 
+        return s && (new Date().getTime() - parseInt(s)) / 60000 < 20; 
+    }
+    
+    function checkCode() { 
+        const p = prompt("Code Admin :"); 
+        if (p && btoa(p) === KEY_HASH) { 
+            localStorage.setItem('adminSession', new Date().getTime()); 
+            return true; 
+        } 
+        return false; 
+    }
+
+    function showView(id) { 
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+    }
 
     function renderStock() {
         const container = document.getElementById('product-list');
+        if (globalData.products.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucun produit. Allez en Admin pour en ajouter.</p>";
+            return;
+        }
         container.innerHTML = '';
         ["Fruit", "Légume"].forEach(cat => {
             const items = globalData.products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
             if(items.length > 0) {
-                container.innerHTML += `<div class="category-label ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}"><span>${cat === 'Fruit' ? '🍎' : '🥦'}</span> ${cat}s</div>`;
+                container.innerHTML += `<div class="category-label ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}">${cat}s</div>`;
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
                     container.innerHTML += `<div class="product-item"><b>${p.n}</b><div class="controls-row"><button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button><div class="qty-val">${qty}</div><button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div></div>`;
@@ -172,50 +172,103 @@
 
     function updateQty(name, val) {
         if(!globalData.stocks[name]) globalData.stocks[name] = { 'st-selve': 0, 'villenave': 0 };
-        globalData.stocks[name][currentSite] = Math.max(0, globalData.stocks[name][currentSite] + val);
+        globalData.stocks[name][currentSite] = Math.max(0, (globalData.stocks[name][currentSite] || 0) + val);
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
-    function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
+    function openDashboard() { 
+        document.getElementById('view-dashboard').style.display = 'block'; 
+        renderDashContent(); 
+    }
+
     function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
-    function setPeriod(p, btn) { filterPeriod = p; updateFilterUI(btn); renderDashContent(); }
-    function setCatFilter(c, btn) { filterCat = c; updateFilterUI(btn); renderDashContent(); }
-    function updateFilterUI(btn) { btn.parentElement.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
 
     function renderDashContent() {
         const results = document.getElementById('dash-results');
-        const now = new Date();
-        const cumulated = {};
-        globalData.products.forEach(p => cumulated[p.n] = { s: 0, v: 0, c: p.c });
-        const keys = Object.keys(globalData.history).sort().reverse();
-        keys.forEach(key => {
-            const h = globalData.history[key]; const hDate = new Date(parseInt(key)); let match = false;
-            if(filterPeriod === 'day') match = hDate.toDateString() === now.toDateString();
-            else if(filterPeriod === 'week') { const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7); match = hDate > weekAgo; }
-            else if(filterPeriod === 'month') match = hDate.getMonth() === now.getMonth();
-            if(match) { Object.keys(h.data).forEach(prodName => { if(cumulated[prodName]) { cumulated[prodName].s += h.data[prodName]['st-selve'] || 0; cumulated[prodName].v += h.data[prodName]['villenave'] || 0; } }); }
-        });
-        let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>Cumul</th></tr>`;
-        let grandS = 0, grandV = 0, chartLabels = [], chartData = [];
-        Object.keys(cumulated).sort().forEach(name => {
-            const d = cumulated[name]; const total = d.s + d.v;
-            if((filterCat === 'all' || d.c === filterCat) && (total > 0)) {
-                tableHtml += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${total}</b></td></tr>`; grandS += d.s; grandV += d.v;
-                chartLabels.push(name); chartData.push(total);
+        let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>TOTAL</th></tr>`;
+        let chartLabels = [], chartData = [];
+        
+        globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
+            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
+            const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
+            if (total > 0) {
+                tableHtml += `<tr><td>${p.n}</td><td>${s['st-selve']}</td><td>${s['villenave']}</td><td><b>${total}</b></td></tr>`;
+                chartLabels.push(p.n); chartData.push(total);
             }
         });
-        tableHtml += `<tr class="total-row"><td>TOTAL</td><td>${grandS}</td><td>${grandV}</td><td>${grandS+grandV}</td></tr></table></div>`;
-        results.innerHTML = tableHtml;
-        updateChart(chartLabels, chartData);
-    }
-
-    function updateChart(labels, data) {
+        results.innerHTML = tableHtml + `</table></div>`;
+        
         const ctx = document.getElementById('myPieChart').getContext('2d');
         if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c','#34495e','#d35400','#c0392b','#7f8c8d'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } } });
+        myChart = new Chart(ctx, { 
+            type: 'pie', 
+            data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c'] }] }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } } 
+        });
     }
 
-    function deleteArchive(timestamp) { if(confirm("Supprimer cette archive ?")) db.ref('history/' + timestamp).remove(); }
-    function validateStocks() { if(!confirm("Archiver ?")) return; const now = new Date(); db.ref('history/' + now.getTime()).set({ date: now.toLocaleDateString('fr-FR'), heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), data: globalData.stocks }).then(() => alert("Archivé !")); }
-    function addProduct() { const n = document.getElementById('new-product-name').value.trim(); const c = document.getElementById('new-product-cat').value; if(n) { db.ref('products').set([...globalData.products, {n,c}]); document.getElementById('new-product-name').value=''; } }
-    function renderAdmin() { const container = document.getElementById('config-list'); container.innerHTML = '<p
+    function validateStocks() {
+        if(!confirm("Archiver ?")) return;
+        const now = new Date();
+        db.ref('history/' + now.getTime()).set({
+            date: now.toLocaleDateString('fr-FR'),
+            heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            data: globalData.stocks
+        }).then(() => alert("C'est fait !"));
+    }
+
+    function renderAdmin() {
+        const container = document.getElementById('config-list');
+        container.innerHTML = `
+            <div style="background:white; padding:15px; border-radius:12px; margin-top:10px;">
+                <input type="text" id="new-p" placeholder="Nom produit" style="width:100%; padding:10px; margin-bottom:10px;">
+                <select id="new-c" style="width:100%; padding:10px; margin-bottom:10px;">
+                    <option value="Fruit">Fruit</option>
+                    <option value="Légume">Légume</option>
+                </select>
+                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER</button>
+            </div>
+            <div id="p-list" style="margin-top:15px;"></div>
+        `;
+        const list = document.getElementById('p-list');
+        globalData.products.forEach(p => {
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ddd; font-size:0.9rem;">
+                <span>${p.n} (${p.c})</span>
+                <span style="color:red;" onclick="removeP('${p.n}')">Supprimer</span>
+            </div>`;
+        });
+    }
+
+    function addP() {
+        const n = document.getElementById('new-p').value.trim();
+        const c = document.getElementById('new-c').value;
+        if(n) { db.ref('products').set([...globalData.products, {n,c}]); }
+    }
+
+    function removeP(name) {
+        if(confirm("Supprimer ?")) {
+            db.ref('products').set(globalData.products.filter(p => p.n !== name));
+            db.ref('stocks/' + name).remove();
+        }
+    }
+
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const rows = [];
+        const sorted = [...globalData.products].sort((a, b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c));
+        sorted.forEach(p => {
+            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
+            const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
+            if (total > 0) rows.push([p.c, p.n, s['st-selve'], s['villenave'], total, ""]);
+        });
+        doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
+        doc.autoTable({ 
+            head: [['Type', 'Produit', 'Selve', 'Vill.', 'TOTAL', 'FAIT']], 
+            body: rows, startY: 25, headStyles: { fillStyle: '#2e7d32' }, styles: { fontSize: 9 }
+        });
+        doc.save("Inventaire_Romain.pdf");
+    }
+</script>
+</body>
+</html>
