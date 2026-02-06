@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventaire Romain - Expert Final</title>
+    <title>Inventaire Romain - Pro v3</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,9 +11,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; --danger: #d32f2f; }
+        :root { 
+            --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; 
+            --fruit: #e67e22; --vege: #27ae60; --aromate: #0097a7; --epicerie: #673ab7; --danger: #d32f2f; 
+        }
         
-        /* Anti-Zoom iPhone & Ergonomie */
         body { 
             font-family: -apple-system, sans-serif; 
             background: var(--bg); margin: 0; padding-bottom: 20px; 
@@ -38,21 +40,22 @@
         }
         .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
         
-        /* Dashboard */
+        /* Categories Styles */
+        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; border-radius: 8px; }
+        .cat-Fruit { background: #fff3e0; color: var(--fruit); }
+        .cat-Légume { background: #e8f5e9; color: var(--vege); }
+        .cat-Aromate { background: #e0f7fa; color: var(--aromate); }
+        .cat-Épicerie { background: #f3e5f5; color: var(--epicerie); }
+        
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
+        
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
         .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
         .chart-container { background: white; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 280px; }
-        
         .stat-card { background: white; margin: 10px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; }
         .stat-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
-        
-        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; border-radius: 8px; }
-        .cat-fruits { background: #fff3e0; color: var(--fruit); }
-        .cat-legumes { background: #e8f5e9; color: var(--vege); }
-        
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -73,9 +76,7 @@
     <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER L'INVENTAIRE</button>
     <button class="btn-main" style="background:#333; color:white;" onclick="generatePDF()">📄 EXPORTER EN PDF</button>
     <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 DASHBOARD & CUMULS</button>
-    
     <button class="btn-main" style="background:white; color:var(--danger); border: 2px solid var(--danger);" onclick="resetAllStocks()">🔄 REMISE À ZÉRO DES STOCKS</button>
-    
     <hr style="margin: 20px 0; opacity: 0.2;">
     <div id="config-list"></div>
 </div>
@@ -139,10 +140,11 @@
         const container = document.getElementById('product-list');
         if (globalData.products.length === 0) { container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucun produit.</p>"; return; }
         container.innerHTML = '';
-        ["Fruit", "Légume"].forEach(cat => {
+        
+        ["Fruit", "Légume", "Aromate", "Épicerie"].forEach(cat => {
             const items = globalData.products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
             if(items.length > 0) {
-                container.innerHTML += `<div class="category-label ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}">${cat}s</div>`;
+                container.innerHTML += `<div class="category-label cat-${cat}">${cat}s</div>`;
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
                     container.innerHTML += `<div class="product-item"><b>${p.n}</b><div class="controls-row"><button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button><div class="qty-val">${qty}</div><button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div></div>`;
@@ -158,42 +160,11 @@
     }
 
     function resetAllStocks() {
-        if(confirm("⚠️ ATTENTION : Cela va remettre TOUS les compteurs à ZÉRO pour Saint-Selve et Villenave. Continuer ?")) {
+        if(confirm("Remettre TOUS les compteurs à ZÉRO ?")) {
             const resetData = {};
             globalData.products.forEach(p => { resetData[p.n] = { 'st-selve': 0, 'villenave': 0 }; });
-            db.ref('stocks').set(resetData).then(() => alert("Tous les stocks ont été remis à zéro."));
+            db.ref('stocks').set(resetData);
         }
-    }
-
-    function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
-    function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
-
-    function renderDashContent() {
-        const results = document.getElementById('dash-results');
-        let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>TOTAL</th></tr>`;
-        let chartLabels = [], chartData = [];
-        globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
-            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
-            const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
-            if (total > 0) {
-                tableHtml += `<tr><td>${p.n}</td><td>${s['st-selve']}</td><td>${s['villenave']}</td><td><b>${total}</b></td></tr>`;
-                chartLabels.push(p.n); chartData.push(total);
-            }
-        });
-        results.innerHTML = tableHtml + `</table></div>`;
-        const ctx = document.getElementById('myPieChart').getContext('2d');
-        if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } } });
-    }
-
-    function validateStocks() {
-        if(!confirm("Archiver l'état actuel ?")) return;
-        const now = new Date();
-        db.ref('history/' + now.getTime()).set({
-            date: now.toLocaleDateString('fr-FR'),
-            heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            data: globalData.stocks
-        }).then(() => alert("Inventaire archivé !"));
     }
 
     function renderAdmin() {
@@ -205,15 +176,17 @@
                 <select id="new-c" style="width:100%; padding:10px; margin-bottom:10px;">
                     <option value="Fruit">Fruit</option>
                     <option value="Légume">Légume</option>
+                    <option value="Aromate">Aromate</option>
+                    <option value="Épicerie">Épicerie</option>
                 </select>
-                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER AU CATALOGUE</button>
+                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER</button>
             </div>
             <div id="p-list" style="margin-top:15px;"></div>
         `;
         const list = document.getElementById('p-list');
-        globalData.products.forEach(p => {
+        globalData.products.sort((a,b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c)).forEach(p => {
             list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ddd; font-size:0.9rem; background:white;">
-                <span>${p.n} (${p.c})</span>
+                <span><b>${p.c}</b> : ${p.n}</span>
                 <span style="color:red; font-weight:bold;" onclick="removeP('${p.n}')">Supprimer</span>
             </div>`;
         });
@@ -232,6 +205,37 @@
         }
     }
 
+    function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
+    function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
+
+    function renderDashContent() {
+        const results = document.getElementById('dash-results');
+        let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>TOTAL</th></tr>`;
+        let labels = [], data = [];
+        globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
+            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
+            const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
+            if (total > 0) {
+                tableHtml += `<tr><td>${p.n}</td><td>${s['st-selve']}</td><td>${s['villenave']}</td><td><b>${total}</b></td></tr>`;
+                labels.push(p.n); data.push(total);
+            }
+        });
+        results.innerHTML = tableHtml + `</table></div>`;
+        const ctx = document.getElementById('myPieChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c','#00bcd4','#9c27b0'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } } } });
+    }
+
+    function validateStocks() {
+        if(!confirm("Archiver l'état actuel ?")) return;
+        const now = new Date();
+        db.ref('history/' + now.getTime()).set({
+            date: now.toLocaleDateString('fr-FR'),
+            heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            data: globalData.stocks
+        }).then(() => alert("Archivé !"));
+    }
+
     function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -242,9 +246,8 @@
             const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
             if (total > 0) rows.push([p.c, p.n, s['st-selve'], s['villenave'], total, ""]);
         });
-        doc.setFontSize(16);
         doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
-        doc.autoTable({ head: [['Type', 'Produit', 'Selve', 'Vill.', 'TOTAL', 'FAIT']], body: rows, startY: 25, headStyles: { fillStyle: '#2e7d32' }, styles: { fontSize: 9 } });
+        doc.autoTable({ head: [['Type', 'Produit', 'Selve', 'Vill.', 'TOTAL', 'FAIT']], body: rows, startY: 25, headStyles: { fillStyle: '#2e7d32' }, styles: { fontSize: 8 } });
         doc.save("Inventaire_Romain.pdf");
     }
 </script>
