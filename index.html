@@ -16,7 +16,7 @@
         /* Anti-Zoom iPhone & Ergonomie */
         body { 
             font-family: -apple-system, sans-serif; 
-            background: var(--bg); margin: 0; padding-bottom: 90px; 
+            background: var(--bg); margin: 0; padding-bottom: 20px; 
             touch-action: manipulation; -webkit-user-select: none; user-select: none; 
         }
 
@@ -53,8 +53,6 @@
         .cat-legumes { background: #e8f5e9; color: var(--vege); }
         
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
-        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 100; box-sizing: border-box; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -68,12 +66,14 @@
 </div>
 
 <div id="view-stock" class="content active">
-    <div id="product-list">Connexion en cours...</div>
+    <div id="product-list">Connexion...</div>
 </div>
 
 <div id="view-admin" class="content">
-    <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER ET ARCHIVER LE STOCK</button>
+    <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER L'INVENTAIRE</button>
+    <button class="btn-main" style="background:#333; color:white;" onclick="generatePDF()">📄 EXPORTER EN PDF</button>
     <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 DASHBOARD & CUMULS</button>
+    <hr style="margin: 20px 0; opacity: 0.2;">
     <div id="config-list"></div>
 </div>
 
@@ -86,10 +86,6 @@
     <div id="dash-results"></div>
 </div>
 
-<div class="footer" id="footer-main">
-    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER PDF ACTUEL</button>
-</div>
-
 <script>
     const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
@@ -100,7 +96,6 @@
     let globalData = { products: [], stocks: {}, history: {} };
     let myChart = null;
 
-    // --- SYNCHRONISATION ---
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         globalData.products = val.products || [];
@@ -108,8 +103,6 @@
         globalData.history = val.history || {};
         renderStock();
         if(document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-    }, (error) => {
-        document.getElementById('product-list').innerHTML = "Erreur de connexion. Vérifiez internet.";
     });
 
     function switchTab(tab) {
@@ -119,15 +112,13 @@
         if (tab === 'admin') {
             if (isSessionValid() || checkCode()) {
                 showView('view-admin');
-                document.getElementById('footer-main').classList.add('hidden');
                 renderAdmin();
             } else {
-                switchTab(currentSite); // Retour si echec code
+                switchTab(currentSite);
             }
         } else {
             currentSite = tab;
             showView('view-stock');
-            document.getElementById('footer-main').classList.remove('hidden');
             renderStock();
         }
     }
@@ -154,7 +145,7 @@
     function renderStock() {
         const container = document.getElementById('product-list');
         if (globalData.products.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucun produit. Allez en Admin pour en ajouter.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucun produit.</p>";
             return;
         }
         container.innerHTML = '';
@@ -176,18 +167,13 @@
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
-    function openDashboard() { 
-        document.getElementById('view-dashboard').style.display = 'block'; 
-        renderDashContent(); 
-    }
-
+    function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
     function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
 
     function renderDashContent() {
         const results = document.getElementById('dash-results');
         let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>TOTAL</th></tr>`;
         let chartLabels = [], chartData = [];
-        
         globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
             const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
             const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
@@ -197,44 +183,40 @@
             }
         });
         results.innerHTML = tableHtml + `</table></div>`;
-        
         const ctx = document.getElementById('myPieChart').getContext('2d');
         if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, { 
-            type: 'pie', 
-            data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c'] }] }, 
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } } 
-        });
+        myChart = new Chart(ctx, { type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } } });
     }
 
     function validateStocks() {
-        if(!confirm("Archiver ?")) return;
+        if(!confirm("Archiver l'état actuel ?")) return;
         const now = new Date();
         db.ref('history/' + now.getTime()).set({
             date: now.toLocaleDateString('fr-FR'),
             heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             data: globalData.stocks
-        }).then(() => alert("C'est fait !"));
+        }).then(() => alert("Inventaire archivé !"));
     }
 
     function renderAdmin() {
         const container = document.getElementById('config-list');
         container.innerHTML = `
-            <div style="background:white; padding:15px; border-radius:12px; margin-top:10px;">
-                <input type="text" id="new-p" placeholder="Nom produit" style="width:100%; padding:10px; margin-bottom:10px;">
+            <div style="background:white; padding:15px; border-radius:12px;">
+                <h3 style="margin-top:0;">Nouveau Produit</h3>
+                <input type="text" id="new-p" placeholder="Nom" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
                 <select id="new-c" style="width:100%; padding:10px; margin-bottom:10px;">
                     <option value="Fruit">Fruit</option>
                     <option value="Légume">Légume</option>
                 </select>
-                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER</button>
+                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER AU CATALOGUE</button>
             </div>
             <div id="p-list" style="margin-top:15px;"></div>
         `;
         const list = document.getElementById('p-list');
         globalData.products.forEach(p => {
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ddd; font-size:0.9rem;">
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #ddd; font-size:0.9rem; background:white;">
                 <span>${p.n} (${p.c})</span>
-                <span style="color:red;" onclick="removeP('${p.n}')">Supprimer</span>
+                <span style="color:red; font-weight:bold;" onclick="removeP('${p.n}')">Supprimer</span>
             </div>`;
         });
     }
@@ -246,7 +228,7 @@
     }
 
     function removeP(name) {
-        if(confirm("Supprimer ?")) {
+        if(confirm("Supprimer ce produit ?")) {
             db.ref('products').set(globalData.products.filter(p => p.n !== name));
             db.ref('stocks/' + name).remove();
         }
@@ -262,6 +244,7 @@
             const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
             if (total > 0) rows.push([p.c, p.n, s['st-selve'], s['villenave'], total, ""]);
         });
+        doc.setFontSize(16);
         doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
         doc.autoTable({ 
             head: [['Type', 'Produit', 'Selve', 'Vill.', 'TOTAL', 'FAIT']], 
