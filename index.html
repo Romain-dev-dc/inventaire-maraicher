@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Inventaire Maraîcher - Romain</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root { --primary: #2e7d32; --danger: #d32f2f; --bg: #f4f7f6; --white: #ffffff; --fruit-color: #e67e22; --vege-color: #27ae60; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .tabs { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #888; text-transform: uppercase; }
+        .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
+        .content { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .category-header { padding: 10px; margin: 20px 0 10px 0; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+        .cat-fruits { background: #fff3e0; color: var(--fruit-color); border-left: 5px solid var(--fruit-color); }
+        .cat-legumes { background: #e8f5e9; color: var(--vege-color); border-left: 5px solid var(--vege-color); }
+        .product-item { background: white; margin-bottom: 8px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .product-name { font-weight: 600; color: #333; text-transform: capitalize; }
+        .controls { display: flex; align-items: center; gap: 15px; }
+        .btn-qty { width: 44px; height: 44px; border-radius: 10px; border: none; background: #eee; font-size: 1.4rem; font-weight: bold; color: var(--primary); cursor: pointer; touch-action: manipulation; }
+        .qty-val { min-width: 30px; text-align: center; font-size: 1.2rem; font-weight: 800; }
+        .admin-section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee; }
+        .add-form { display: flex; flex-direction: column; gap: 10px; }
+        input, select { padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 1rem; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-danger-outline { width: 100%; background: none; border: 2px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; box-sizing: border-box; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); }
+        .btn-pdf-large { width: 100%; max-width: 500px; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .hidden { display: none; }
+        .session-info { font-size: 0.75rem; color: #999; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<header>MARAÎCHER : ST SELVE / VILLENAVE</header>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('st-selve')">St Selve</div>
+    <div class="tab" onclick="switchTab('villenave')">Villenave</div>
+    <div class="tab" onclick="switchTab('admin')">⚙️ Admin</div>
+</div>
+
+<div id="view-stock" class="content">
+    <div id="product-list"></div>
+</div>
+
+<div id="view-admin" class="content hidden">
+    <div class="session-info" id="session-timer"></div>
+    <div class="admin-section">
+        <h4>Ajouter un produit</h4>
+        <div class="add-form">
+            <input type="text" id="new-product-name" placeholder="Nom du produit">
+            <select id="new-product-cat">
+                <option value="Fruit">🍎 Fruit</option>
+                <option value="Légume">🥦 Légume</option>
+            </select>
+            <button class="btn-add" onclick="addProduct()">Valider</button>
+        </div>
+    </div>
+    <div class="admin-section">
+        <button class="btn-danger-outline" onclick="resetAll()">🔄 Vider les compteurs (Reset)</button>
+        <button class="btn-danger-outline" style="border-color:#999; color:#999; margin-top:10px;" onclick="logout()">Déconnexion</button>
+    </div>
+    <div class="admin-section">
+        <h4>Liste actuelle</h4>
+        <div id="config-list"></div>
+    </div>
+</div>
+
+<div class="footer" id="footer-main">
+    <button class="btn-pdf-large" onclick="generatePDF()">📄 GÉNÉRER LE PDF</button>
+</div>
+
+<script>
+    // Liste initiale
+    const defaultData = [
+        { n: "Banane", c: "Fruit" }, { n: "Citron", c: "Fruit" }, { n: "Pomme Gala", c: "Fruit" },
+        { n: "Carotte", c: "Légume" }, { n: "Courgette", c: "Légume" }, { n: "Pomme de terre", c: "Légume" },
+        { n: "Salade", c: "Légume" }, { n: "Tomate", c: "Légume" }
+    ];
+
+    // Mot de passe sécurisé (Romain33140*)
+    const KEY_HASH = "Um9tYWluMzMxNDAq"; 
+
+    let currentSite = 'st-selve';
+    let products = JSON.parse(localStorage.getItem('productsObj')) || defaultData;
+    let stocks = JSON.parse(localStorage.getItem('stocksData')) || {};
+
+    function save() {
+        localStorage.setItem('productsObj', JSON.stringify(products));
+        localStorage.setItem('stocksData', JSON.stringify(stocks));
+    }
+
+    function isSessionValid() {
+        const sessionTime = localStorage.getItem('adminSession');
+        if (!sessionTime) return false;
+        return (new Date().getTime() - parseInt(sessionTime)) / 1000 / 60 < 20;
+    }
+
+    function logout() {
+        localStorage.removeItem('adminSession');
+        location.reload();
+    }
+
+    function switchTab(tab) {
+        const tabs = document.querySelectorAll('.tab');
+        const eventSource = event;
+
+        if (tab === 'admin') {
+            let pass = isSessionValid();
+            if (!pass) {
+                const input = prompt("Accès Admin (Code requis) :");
+                if (input && btoa(input) === KEY_HASH) {
+                    localStorage.setItem('adminSession', new Date().getTime());
+                    pass = true;
+                }
+            }
+            if (pass) {
+                tabs.forEach(t => t.classList.remove('active'));
+                if(eventSource) eventSource.currentTarget.classList.add('active');
+                document.getElementById('view-stock').classList.add('hidden');
+                document.getElementById('footer-main').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                renderAdmin();
+                const timer = setInterval(() => {
+                    if(!isSessionValid()) { clearInterval(timer); logout(); }
+                }, 60000);
+            } else if (input !== null) {
+                alert("Code incorrect.");
+            }
+        } else {
+            tabs.forEach(t => t.classList.remove('active'));
+            if(eventSource) eventSource.currentTarget.classList.add('active');
+            currentSite = tab;
+            document.getElementById('view-stock').classList.remove('hidden');
+            document.getElementById('footer-main').classList.remove('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            renderStock();
+        }
+    }
+
+    function renderStock() {
+        const container = document.getElementById('product-list');
+        container.innerHTML = '';
+        ["Fruit", "Légume"].forEach(cat => {
+            const filtered = products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
+            if(filtered.length > 0) {
+                const head = document.createElement('div');
+                head.className = `category-header ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}`;
+                head.innerHTML = `<span>${cat === 'Fruit' ? '🍎' : '🥦'}</span> ${cat}s`;
+                container.appendChild(head);
+                filtered.forEach(p => {
+                    if(!stocks[p.n]) stocks[p.n] = { 'st-selve': 0, 'villenave': 0 };
+                    const div = document.createElement('div');
+                    div.className = 'product-item';
+                    div.innerHTML = `<div class="product-name">${p.n}</div><div class="controls">
+                        <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
+                        <div class="qty-val">${stocks[p.n][currentSite]}</div>
+                        <button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div>`;
+                    container.appendChild(div);
+                });
+            }
+        });
+    }
+
+    function renderAdmin() {
+        const container = document.getElementById('config-list');
+        container.innerHTML = '';
+        products.sort((a,b) => a.c.localeCompare(b.c) || a.n.localeCompare(b.n)).forEach(p => {
+            const div = document.createElement('div');
+            div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.padding = "12px 0"; div.style.borderBottom = "1px solid #eee";
+            div.innerHTML = `<span><b>[${p.c.substring(0,1)}]</b> ${p.n}</span><span style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="removeProduct('${p.n}')">🗑️</span>`;
+            container.appendChild(div);
+        });
+    }
+
+    function updateQty(name, val) {
+        stocks[name][currentSite] = Math.max(0, stocks[name][currentSite] + val);
+        save(); renderStock();
+    }
+
+    function addProduct() {
+        const n = document.getElementById('new-product-name').value.trim();
+        const c = document.getElementById('new-product-cat').value;
+        if(n) { 
+            if(products.some(p => p.n.toLowerCase() === n.toLowerCase())) return alert("Existe déjà !");
+            products.push({ n, c }); 
+            save(); renderAdmin(); 
+            document.getElementById('new-product-name').value = ''; 
+        }
+    }
+
+    function removeProduct(name) {
+        if(confirm(`Supprimer ${name} définitivement ?`)) { products = products.filter(p => p.n !== name); delete stocks[name]; save(); renderAdmin(); }
+    }
+
+    function resetAll() {
+        if(confirm("Voulez-vous remettre tous les stocks à zéro ?")) { 
+            Object.keys(stocks).forEach(k => stocks[k] = { 'st-selve': 0, 'villenave': 0 }); 
+            save(); renderStock(); 
+        }
+    }
+
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const rows = [];
+        ["Fruit", "Légume"].forEach(cat => {
+            products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n)).forEach(p => {
+                const s1 = stocks[p.n]['st-selve'], s2 = stocks[p.n]['villenave'];
+                if(s1 > 0 || s2 > 0) rows.push([p.n, cat, s1, s2]);
+            });
+        });
+        if(!rows.length) return alert("Aucun stock à exporter !");
+        doc.setFontSize(18); doc.setTextColor(46, 125, 50);
+        doc.text("INVENTAIRE MARAÎCHER", 14, 20);
+        doc.setFontSize(10); doc.setTextColor(100);
+        doc.text(`Le : ${new Date().toLocaleString()}`, 14, 28);
+        doc.autoTable({ startY: 35, head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows, headStyles: { fillColor: [46, 125, 50] }, theme: 'striped' });
+        doc.save(`Inventaire_${new Date().toLocaleDateString()}.pdf`);
+    }
+
+    renderStock();
+</script>
+</body>
+</html>
