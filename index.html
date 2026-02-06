@@ -13,7 +13,7 @@
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
         .tabs { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #888; }
+        .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
         .content { padding: 15px; max-width: 600px; margin: 0 auto; }
         .category-header { padding: 10px; margin: 20px 0 10px 0; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
@@ -31,7 +31,7 @@
 </head>
 <body>
 
-<header>STOCKS PARTAGÉS (TEMPS RÉEL)</header>
+<header>STOCKS TEMPS RÉEL : ROMAIN</header>
 
 <div class="tabs">
     <div class="tab active" onclick="switchTab('st-selve')">St Selve</div>
@@ -40,21 +40,18 @@
 </div>
 
 <div id="view-stock" class="content">
-    <div id="product-list">Chargement des données...</div>
+    <div id="product-list">Initialisation...</div>
 </div>
 
 <div id="view-admin" class="content hidden">
     <div class="admin-section">
         <h4>Ajouter un produit</h4>
-        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;">
+        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing: border-box;">
+        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
             <option value="Fruit">🍎 Fruit</option>
             <option value="Légume">🥦 Légume</option>
         </select>
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold;">Ajouter pour tous</button>
-    </div>
-    <div class="admin-section">
-        <button onclick="resetAll()" style="width:100%; padding:12px; border:2px solid var(--danger); color:var(--danger); background:none; border-radius:8px; font-weight:bold;">Vider les stocks (Global)</button>
+        <button onclick="addProduct()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold;">Ajouter</button>
     </div>
     <div id="config-list" class="admin-section"></div>
 </div>
@@ -64,54 +61,75 @@
 </div>
 
 <script>
-    // --- CONFIGURATION FIREBASE ---
+    // --- CONFIGURATION ---
     const firebaseConfig = {
-        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" // <--- METS TON LIEN ICI
+        databaseURL: https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/
     };
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const ADMIN_CODE_B64 = "Um9tYWluMzMxNDAq"; // Romain33140*
 
-    const KEY_HASH = "Um9tYWluMzMxNDAq"; 
     let currentSite = 'st-selve';
     let globalData = { products: [], stocks: {} };
 
-    // --- ÉCOUTE DES CHANGEMENTS EN TEMPS RÉEL ---
+    // Liste par défaut si la base est vide
+    const defaultProducts = [
+        { n: "Banane", c: "Fruit" }, { n: "Pomme", c: "Fruit" },
+        { n: "Carotte", c: "Légume" }, { n: "Salade", c: "Légume" }
+    ];
+
+    // --- SYNCHRONISATION ---
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val();
-        if (val) {
+        if (!val || !val.products) {
+            // Si vide, on injecte les produits par défaut
+            db.ref('products').set(defaultProducts);
+        } else {
             globalData.products = val.products || [];
             globalData.stocks = val.stocks || {};
             renderStock();
             if(!document.getElementById('view-admin').classList.contains('hidden')) renderAdmin();
         }
+    }, (error) => {
+        document.getElementById('product-list').innerHTML = "Erreur : Vérifiez les règles de sécurité Firebase (Mode Test).";
     });
 
     function isSessionValid() {
         const sessionTime = localStorage.getItem('adminSession');
-        return sessionTime && (new Date().getTime() - sessionTime) / 1000 / 60 < 20;
+        return sessionTime && (new Date().getTime() - parseInt(sessionTime)) / 1000 / 60 < 20;
     }
 
     function switchTab(tab) {
+        const tabs = document.querySelectorAll('.tab');
         if (tab === 'admin') {
-            if (isSessionValid() || (prompt("Code Admin :") && btoa(prompt) === KEY_HASH)) { // Note: prompt logic simplified for code brevity
-                if(!isSessionValid()) {
-                   // Vérification réelle du code
-                   // Pour simplifier le test, j'utilise la validation directe ici :
-                   const pass = prompt("Accès Admin :");
-                   if(btoa(pass) === KEY_HASH) {
-                       localStorage.setItem('adminSession', new Date().getTime());
-                   } else { return alert("Faux"); }
-                }
+            if (isSessionValid() || checkCode()) {
+                tabs.forEach(t => t.classList.remove('active'));
+                event.currentTarget.classList.add('active');
                 document.getElementById('view-stock').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('footer-main').classList.add('hidden');
                 renderAdmin();
             }
         } else {
+            tabs.forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
             currentSite = tab;
             document.getElementById('view-stock').classList.remove('hidden');
             document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('footer-main').classList.remove('hidden');
             renderStock();
         }
+    }
+
+    function checkCode() {
+        const pass = prompt("Code Admin :");
+        if (pass && btoa(pass) === ADMIN_CODE_B64) {
+            localStorage.setItem('adminSession', new Date().getTime());
+            return true;
+        }
+        alert("Accès refusé");
+        return false;
     }
 
     function renderStock() {
@@ -121,11 +139,12 @@
             const items = globalData.products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
             if(items.length > 0) {
                 const h = document.createElement('div'); h.className=`category-header cat-${cat.toLowerCase()}s`;
-                h.innerHTML = `${cat}s`; container.appendChild(h);
+                h.innerHTML = `<span>${cat === 'Fruit' ? '🍎' : '🥦'}</span> ${cat}s`;
+                container.appendChild(h);
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
                     const div = document.createElement('div'); div.className='product-item';
-                    div.innerHTML = `<div>${p.n}</div><div class="controls">
+                    div.innerHTML = `<b>${p.n}</b><div class="controls">
                         <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
                         <div class="qty-val">${qty}</div>
                         <button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div>`;
@@ -153,11 +172,11 @@
 
     function renderAdmin() {
         const container = document.getElementById('config-list');
-        container.innerHTML = '<h4>Liste Globale</h4>';
+        container.innerHTML = '<h4>Gérer les produits</h4>';
         globalData.products.forEach(p => {
             const div = document.createElement('div');
-            div.style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee";
-            div.innerHTML = `<span>${p.n}</span><span style="color:red" onclick="removeProduct('${p.n}')">🗑️</span>`;
+            div.style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee";
+            div.innerHTML = `<span>[${p.c}] ${p.n}</span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer 🗑️</span>`;
             container.appendChild(div);
         });
     }
@@ -170,14 +189,6 @@
         }
     }
 
-    function resetAll() {
-        if(confirm("Remettre TOUT à zéro ?")) {
-            const newStocks = {};
-            globalData.products.forEach(p => newStocks[p.n] = {'st-selve':0, 'villenave':0});
-            db.ref('stocks').set(newStocks);
-        }
-    }
-
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF(); const rows = [];
         globalData.products.forEach(p => {
@@ -185,9 +196,8 @@
             if(s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.n, p.c, s['st-selve'], s['villenave']]);
         });
         doc.autoTable({ head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows });
-        doc.save("Stocks.pdf");
+        doc.save("Inventaire.pdf");
     }
 </script>
 </body>
 </html>
-
