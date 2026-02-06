@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventaire Romain - Expert</title>
+    <title>Inventaire Romain - Expert v4</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; --danger: #d32f2f; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; }
@@ -21,9 +23,13 @@
         .controls-row { display: flex; align-items: center; background: #f8f8f8; border-radius: 10px; padding: 2px; }
         .btn-qty { width: 40px; height: 40px; border: none; background: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: var(--primary); cursor: pointer; }
         .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
+        
+        /* Dashboard & Charts */
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
         .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
         .dash-filters { background: white; padding: 10px; position: sticky; top: 48px; z-index: 305; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chart-container { background: white; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 280px; }
+        
         .filter-group { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
         .btn-filter { padding: 6px 12px; border-radius: 15px; border: 1px solid #ddd; background: white; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
         .btn-filter.active { background: var(--secondary); color: white; border-color: var(--secondary); }
@@ -32,8 +38,8 @@
         .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; color: #666; }
         .stat-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
         .total-row { background: #f0f7ff; font-weight: bold; }
-        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin: 5px 10px; border-radius: 10px; border: 1px solid #eee; }
-        .btn-delete-archive { background: #ffebee; color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
+        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; margin: 5px 10px; border-radius: 10px; border: 1px solid #eee; font-size: 0.8rem; }
+        .btn-delete-archive { background: #ffebee; color: var(--danger); border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; }
         .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; border-radius: 8px; }
         .cat-fruits { background: #fff3e0; color: var(--fruit); }
         .cat-legumes { background: #e8f5e9; color: var(--vege); }
@@ -53,7 +59,7 @@
 </div>
 
 <div id="view-stock" class="content active">
-    <div id="product-list">Initialisation...</div>
+    <div id="product-list">Chargement des produits...</div>
 </div>
 
 <div id="view-admin" class="content">
@@ -62,7 +68,7 @@
     
     <div style="background:white; padding:20px; border-radius:15px; border:1px solid #ddd;">
         <h3 style="margin:0 0 15px 0;">Catalogue</h3>
-        <input type="text" id="new-product-name" placeholder="Nom (ex: Tomate)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+        <input type="text" id="new-product-name" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
         <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;">
             <option value="Fruit">🍎 Fruit</option>
             <option value="Légume">🥦 Légume</option>
@@ -74,13 +80,26 @@
 
 <div id="view-dashboard">
     <div class="dash-header">
-        <span>📊 ANALYSE DES STOCKS</span>
+        <span>📊 ANALYSE PAR PRODUIT</span>
         <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Retour</button>
     </div>
     <div class="dash-filters">
-        <div class="filter-group"><button class="btn-filter active" onclick="setPeriod('day', this)">Aujourd'hui</button><button class="btn-filter" onclick="setPeriod('week', this)">7 jours</button><button class="btn-filter" onclick="setPeriod('month', this)">Mois</button></div>
-        <div class="filter-group"><button class="btn-filter active" onclick="setCatFilter('all', this)">Tout</button><button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits</button><button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes</button></div>
+        <div class="filter-group">
+            <button class="btn-filter active" onclick="setPeriod('day', this)">Aujourd'hui</button>
+            <button class="btn-filter" onclick="setPeriod('week', this)">7 jours</button>
+            <button class="btn-filter" onclick="setPeriod('month', this)">Mois</button>
+        </div>
+        <div class="filter-group">
+            <button class="btn-filter active" onclick="setCatFilter('all', this)">Tous Produits</button>
+            <button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits Seuls</button>
+            <button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes Seuls</button>
+        </div>
     </div>
+    
+    <div class="chart-container">
+        <canvas id="myPieChart"></canvas>
+    </div>
+
     <div id="dash-results"></div>
 </div>
 
@@ -98,6 +117,7 @@
     let globalData = { products: [], stocks: {}, history: {} };
     let filterPeriod = 'day';
     let filterCat = 'all';
+    let myChart = null;
 
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
@@ -153,9 +173,11 @@
         const results = document.getElementById('dash-results');
         const now = new Date();
         const cumulated = {};
-        let archiveHtml = "<h4 style='margin:20px 10px 10px;'>Détail des validations :</h4>";
+        let archiveHtml = "<h4 style='margin:20px 10px 10px;'>Historique des validations :</h4>";
+        
         globalData.products.forEach(p => cumulated[p.n] = { s: 0, v: 0, c: p.c });
         const keys = Object.keys(globalData.history).sort().reverse();
+        
         keys.forEach(key => {
             const h = globalData.history[key]; const hDate = new Date(parseInt(key)); let match = false;
             if(filterPeriod === 'day') match = hDate.toDateString() === now.toDateString();
@@ -163,23 +185,51 @@
             else if(filterPeriod === 'month') match = hDate.getMonth() === now.getMonth();
             if(match) {
                 Object.keys(h.data).forEach(prodName => { if(cumulated[prodName]) { cumulated[prodName].s += h.data[prodName]['st-selve'] || 0; cumulated[prodName].v += h.data[prodName]['villenave'] || 0; } });
-                archiveHtml += `<div class="archive-item"><span><b>${h.heure}</b> (${h.date})</span><button class="btn-delete-archive" onclick="deleteArchive('${key}')">🗑️ ANNULER</button></div>`;
+                archiveHtml += `<div class="archive-item"><span><b>${h.heure}</b> (${h.date})</span><button class="btn-delete-archive" onclick="deleteArchive('${key}')">🗑️</button></div>`;
             }
         });
+
         let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>Cumul</th></tr>`;
         let grandS = 0, grandV = 0;
+        let chartLabels = [];
+        let chartData = [];
+
         Object.keys(cumulated).sort().forEach(name => {
-            const d = cumulated[name]; if((filterCat === 'all' || d.c === filterCat) && (d.s > 0 || d.v > 0)) {
-                tableHtml += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${d.s + d.v}</b></td></tr>`; grandS += d.s; grandV += d.v;
+            const d = cumulated[name]; 
+            const total = d.s + d.v;
+            if((filterCat === 'all' || d.c === filterCat) && (total > 0)) {
+                tableHtml += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${total}</b></td></tr>`; 
+                grandS += d.s; grandV += d.v;
+                chartLabels.push(name); // Ajout du nom du produit au graphique
+                chartData.push(total); // Ajout du total cumulé au graphique
             }
         });
         tableHtml += `<tr class="total-row"><td>TOTAL</td><td>${grandS}</td><td>${grandV}</td><td>${grandS + grandV}</td></tr></table></div>`;
         results.innerHTML = tableHtml + archiveHtml;
+        
+        updateChart(chartLabels, chartData);
+    }
+
+    function updateChart(labels, data) {
+        const ctx = document.getElementById('myPieChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c','#34495e','#d35400','#c0392b','#7f8c8d']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } }
+        });
     }
 
     function deleteArchive(timestamp) { if(confirm("Supprimer cette archive ?")) db.ref('history/' + timestamp).remove(); }
+    
     function validateStocks() {
-        if(!confirm("Voulez-vous archiver l'état actuel ?")) return;
+        if(!confirm("Archiver le stock actuel ?")) return;
         const now = new Date();
         db.ref('history/' + now.getTime()).set({ date: now.toLocaleDateString('fr-FR'), heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), data: globalData.stocks }).then(() => alert("Archivé !"));
     }
@@ -204,12 +254,17 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const rows = [];
-        globalData.products.forEach(p => {
-            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
-            if (s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.n, p.c, s['st-selve'], s['villenave']]);
+        const sortedProducts = [...globalData.products].sort((a, b) => {
+            if (a.c === b.c) return a.n.localeCompare(b.n);
+            return a.c.localeCompare(b.c);
         });
-        doc.text("INVENTAIRE ACTUEL - " + new Date().toLocaleDateString(), 14, 15);
-        doc.autoTable({ head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows, startY: 20 });
+        sortedProducts.forEach(p => {
+            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
+            if (s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.c, p.n, s['st-selve'], s['villenave']]);
+        });
+        doc.setFontSize(18);
+        doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
+        doc.autoTable({ head: [['Type', 'Produit', 'St Selve', 'Villenave']], body: rows, startY: 25, headStyles: { fillStyle: '#2e7d32' } });
         doc.save("Inventaire_Romain.pdf");
     }
 </script>
