@@ -3,41 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventaire Pro - Romain</title>
+    <title>Inventaire Expert - Romain</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; }
-        
         .tabs { display: flex; background: white; position: sticky; top: 48px; z-index: 150; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
-
         .content { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
         .content.active { display: block; }
-        
         .product-item { background: white; margin-bottom: 10px; padding: 12px 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .controls-row { display: flex; align-items: center; background: #f8f8f8; border-radius: 10px; padding: 2px; }
-        .btn-qty { width: 40px; height: 40px; border: none; background: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: var(--primary); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .btn-qty { width: 40px; height: 40px; border: none; background: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: var(--primary); cursor: pointer; }
         .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
-
+        
+        /* Dashboard Styles */
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
-        .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; }
-        .dash-nav { display: flex; gap: 5px; padding: 10px; overflow-x: auto; background: white; position: sticky; top:50px; }
-        .btn-filter { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 0.8rem; font-weight: bold; white-space: nowrap; }
+        .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
+        .dash-filters { background: white; padding: 10px; position: sticky; top: 50px; z-index: 305; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .filter-group { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 5px; }
+        .btn-filter { padding: 6px 12px; border-radius: 15px; border: 1px solid #ddd; background: white; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
         .btn-filter.active { background: var(--secondary); color: white; border-color: var(--secondary); }
         
-        .history-card { background: white; margin: 10px; padding: 15px; border-radius: 12px; border-left: 5px solid var(--secondary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
-        
+        .stat-card { background: white; margin: 10px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; color: #666; }
+        .stat-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
+        .total-row { background: #f0f7ff; font-weight: bold; }
+
         .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; border-radius: 8px; }
         .cat-fruits { background: #fff3e0; color: var(--fruit); }
         .cat-legumes { background: #e8f5e9; color: var(--vege); }
-        
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
         .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: flex; justify-content: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 100; box-sizing: border-box; }
         .hidden { display: none !important; }
@@ -53,47 +52,47 @@
     <div class="tab" id="tab-admin" onclick="switchTab('admin')">⚙️ Admin</div>
 </div>
 
-<div id="view-stock" class="content active">
-    <div id="product-list">Chargement...</div>
-</div>
+<div id="view-stock" class="content active"><div id="product-list">Chargement...</div></div>
 
 <div id="view-admin" class="content">
-    <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER LES STOCKS DU JOUR</button>
-    <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 OUVRIR LE DASHBOARD COMPLET</button>
+    <button class="btn-main" style="background:var(--primary); color:white;" onclick="validateStocks()">✅ VALIDER ET ARCHIVER LE STOCK</button>
+    <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 ANALYSER LES CUMULS (DASHBOARD)</button>
     
-    <div style="background:white; padding:20px; border-radius:15px; border:1px solid #ddd; margin-top:10px;">
-        <h3 style="margin-top:0;">Configuration</h3>
-        <label style="font-size:0.8rem; font-weight:bold;">NOM DU PRODUIT</label>
-        <input type="text" id="new-product-name" placeholder="Ex: Banane" style="width:100%; padding:12px; margin:8px 0 15px 0; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
-        
-        <label style="font-size:0.8rem; font-weight:bold;">CATÉGORIE</label>
-        <select id="new-product-cat" style="width:100%; padding:12px; margin:8px 0 15px 0; border-radius:8px; border:1px solid #ccc;">
+    <div style="background:white; padding:20px; border-radius:15px; border:1px solid #ddd;">
+        <h3 style="margin:0 0 15px 0;">Nouveau Produit</h3>
+        <input type="text" id="new-product-name" placeholder="Nom" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
+        <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;">
             <option value="Fruit">🍎 Fruit</option>
             <option value="Légume">🥦 Légume</option>
         </select>
-        
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER AU CATALOGUE</button>
-        
-        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-        <div id="config-list"></div>
+        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER</button>
+        <div id="config-list" style="margin-top:20px;"></div>
     </div>
 </div>
 
 <div id="view-dashboard">
     <div class="dash-header">
-        <span>📊 HISTORIQUE</span>
+        <span>📊 ANALYSE DES CUMULS</span>
         <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Fermer</button>
     </div>
-    <div class="dash-nav">
-        <button class="btn-filter active" onclick="filterDash('all', this)">Vue d'ensemble</button>
-        <button class="btn-filter" onclick="filterDash('Fruit', this)">Détails Fruits</button>
-        <button class="btn-filter" onclick="filterDash('Légume', this)">Détails Légumes</button>
+    <div class="dash-filters">
+        <div class="filter-group">
+            <button class="btn-filter active" id="p-day" onclick="setPeriod('day', this)">Aujourd'hui</button>
+            <button class="btn-filter" onclick="setPeriod('week', this)">Cette Semaine</button>
+            <button class="btn-filter" onclick="setPeriod('month', this)">Ce Mois</button>
+            <button class="btn-filter" onclick="setPeriod('year', this)">Année</button>
+        </div>
+        <div class="filter-group">
+            <button class="btn-filter active" onclick="setCatFilter('all', this)">Tout</button>
+            <button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits</button>
+            <button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes</button>
+        </div>
     </div>
-    <div id="dash-content"></div>
+    <div id="dash-results"></div>
 </div>
 
 <div class="footer" id="footer-main">
-    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER PDF ACTUEL</button>
+    <button onclick="alert('Export PDF du cumul disponible bientôt')" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER LES CHIFFRES ACTUELS</button>
 </div>
 
 <script>
@@ -103,8 +102,9 @@
     const KEY_HASH = "Um9tYWluMzMxNDAq"; 
 
     let currentSite = 'st-selve';
-    let dashFilter = 'all';
     let globalData = { products: [], stocks: {}, history: {} };
+    let filterPeriod = 'day';
+    let filterCat = 'all';
 
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
@@ -119,27 +119,15 @@
     function switchTab(tab) {
         if (tab === 'admin') {
             if (isSessionValid() || checkCode()) {
-                showView('view-admin');
-                updateTabUI('tab-admin');
+                showView('view-admin'); updateTabUI('tab-admin');
                 document.getElementById('footer-main').classList.add('hidden');
             }
         } else {
             currentSite = tab;
-            showView('view-stock');
-            updateTabUI('tab-' + tab);
+            showView('view-stock'); updateTabUI('tab-' + tab);
             document.getElementById('footer-main').classList.remove('hidden');
             renderStock();
         }
-    }
-
-    function showView(viewId) {
-        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-    }
-
-    function updateTabUI(tabId) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
     }
 
     function isSessionValid() {
@@ -156,6 +144,9 @@
         alert("Accès refusé"); return false;
     }
 
+    function showView(id) { document.querySelectorAll('.content').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function updateTabUI(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
     function renderStock() {
         const container = document.getElementById('product-list');
         container.innerHTML = '';
@@ -168,15 +159,12 @@
                 container.appendChild(h);
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
-                    const div = document.createElement('div');
-                    div.className = 'product-item';
-                    div.innerHTML = `<b>${p.n}</b>
+                    container.innerHTML += `<div class="product-item"><b>${p.n}</b>
                         <div class="controls-row">
                             <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
                             <div class="qty-val">${qty}</div>
                             <button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button>
-                        </div>`;
-                    container.appendChild(div);
+                        </div></div>`;
                 });
             }
         });
@@ -188,66 +176,97 @@
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
+    // --- LOGIQUE DASHBOARD CUMULÉ ---
     function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
     function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
-    function filterDash(type, btn) {
-        dashFilter = type;
-        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+    
+    function setPeriod(p, btn) { 
+        filterPeriod = p; 
+        btn.parentElement.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        renderDashContent();
+        renderDashContent(); 
+    }
+    
+    function setCatFilter(c, btn) { 
+        filterCat = c; 
+        btn.parentElement.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderDashContent(); 
     }
 
     function renderDashContent() {
-        const container = document.getElementById('dash-content');
-        const keys = Object.keys(globalData.history).sort().reverse();
-        if(keys.length === 0) { container.innerHTML = "<p style='text-align:center; padding:20px;'>Aucune donnée.</p>"; return; }
+        const results = document.getElementById('dash-results');
+        const now = new Date();
+        const cumulated = {};
         
-        let html = "";
-        keys.forEach(k => {
-            const entry = globalData.history[k];
-            let tS = 0, tV = 0, details = "";
-            globalData.products.forEach(p => {
-                const qS = (entry.data[p.n] && entry.data[p.n]['st-selve']) || 0;
-                const qV = (entry.data[p.n] && entry.data[p.n]['villenave']) || 0;
-                if((dashFilter === 'all' || p.c === dashFilter) && (qS > 0 || qV > 0)) {
-                    details += `<div class="stat-row"><span>${p.n}</span><span>${qS} / ${qV}</span></div>`;
-                }
-                tS += qS; tV += qV;
-            });
-            html += `<div class="history-card">
-                <div style="font-size:0.8rem; color:#888; margin-bottom:8px;">📅 ${entry.date} - ${entry.heure}</div>
-                ${dashFilter === 'all' ? `<div style="display:flex; justify-content:space-around; background:#f4f4f4; padding:8px; border-radius:8px;">
-                    <div>St Selve: <b>${tS}</b></div><div>Villenave: <b>${tV}</b></div>
-                </div>` : details}
-            </div>`;
+        // Initialiser les cumuls
+        globalData.products.forEach(p => cumulated[p.n] = { s: 0, v: 0, c: p.c });
+
+        Object.keys(globalData.history).forEach(key => {
+            const h = globalData.history[key];
+            const hDate = new Date(parseInt(key));
+            let match = false;
+
+            if(filterPeriod === 'day') match = hDate.toDateString() === now.toDateString();
+            else if(filterPeriod === 'week') {
+                const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7);
+                match = hDate > weekAgo;
+            }
+            else if(filterPeriod === 'month') match = hDate.getMonth() === now.getMonth() && hDate.getFullYear() === now.getFullYear();
+            else if(filterPeriod === 'year') match = hDate.getFullYear() === now.getFullYear();
+
+            if(match) {
+                Object.keys(h.data).forEach(prodName => {
+                    if(cumulated[prodName]) {
+                        cumulated[prodName].s += h.data[prodName]['st-selve'] || 0;
+                        cumulated[prodName].v += h.data[prodName]['villenave'] || 0;
+                    }
+                });
+            }
         });
-        container.innerHTML = html;
+
+        let html = `<div class="stat-card"><table class="stat-table">
+            <tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>Total</th></tr>`;
+        
+        let grandS = 0, grandV = 0;
+        
+        Object.keys(cumulated).sort().forEach(name => {
+            const d = cumulated[name];
+            if((filterCat === 'all' || d.c === filterCat) && (d.s > 0 || d.v > 0)) {
+                html += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${d.s + d.v}</b></td></tr>`;
+                grandS += d.s; grandV += d.v;
+            }
+        });
+
+        html += `<tr class="total-row"><td>TOTAL</td><td>${grandS}</td><td>${grandV}</td><td>${grandS + grandV}</td></tr>`;
+        html += `</table></div>`;
+        results.innerHTML = html;
     }
 
     function validateStocks() {
-        if(!confirm("Valider les stocks ?")) return;
+        if(!confirm("Archiver ces stocks dans l'historique ?")) return;
         const now = new Date();
         db.ref('history/' + now.getTime()).set({
             date: now.toLocaleDateString('fr-FR'),
             heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             data: globalData.stocks
-        }).then(() => alert("Validé !"));
+        }).then(() => alert("Stocks archivés ! Retrouvez-les dans le Dashboard."));
     }
 
     function addProduct() {
         const n = document.getElementById('new-product-name').value.trim();
         const c = document.getElementById('new-product-cat').value;
-        if(n) { globalData.products.push({n,c}); db.ref('products').set(globalData.products); document.getElementById('new-product-name').value=''; }
+        if(n) { db.ref('products').set([...globalData.products, {n,c}]); document.getElementById('new-product-name').value=''; }
     }
 
     function renderAdmin() {
         const container = document.getElementById('config-list');
-        container.innerHTML = '<p style="font-size:0.8rem; margin-bottom:5px;">Catalogue actuel :</p>';
+        container.innerHTML = '<p style="font-size:0.8rem; color:#888;">Catalogue :</p>';
         globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
-            const div = document.createElement('div');
-            div.style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.85rem";
-            div.innerHTML = `<span>${p.n} <small>(${p.c})</small></span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer</span>`;
-            container.appendChild(div);
+            container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.85rem">
+                <span>${p.n} <small>(${p.c})</small></span>
+                <span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer</span>
+            </div>`;
         });
     }
 
@@ -256,17 +275,6 @@
             db.ref('products').set(globalData.products.filter(p => p.n !== name));
             db.ref('stocks/' + name).remove();
         }
-    }
-
-    function generatePDF() {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF(); const rows = [];
-        globalData.products.forEach(p => {
-            const s = globalData.stocks[p.n] || { 'st-selve':0, 'villenave':0 };
-            if(s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.n, p.c, s['st-selve'], s['villenave']]);
-        });
-        doc.text("INVENTAIRE - " + new Date().toLocaleDateString(), 14, 15);
-        doc.autoTable({ head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows, startY: 20 });
-        doc.save("Inventaire.pdf");
     }
 </script>
 </body>
