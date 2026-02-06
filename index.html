@@ -6,45 +6,34 @@
     <title>Inventaire Romain - Expert</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; --fruit: #e67e22; --vege: #27ae60; --danger: #d32f2f; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; }
-        
-        /* En-tête et Navigation */
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; }
         .tabs { display: flex; background: white; position: sticky; top: 48px; z-index: 150; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
-
-        /* Contenu et Pages */
         .content { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
         .content.active { display: block; }
-        
-        /* Items de stock Horizontaux */
         .product-item { background: white; margin-bottom: 10px; padding: 12px 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .controls-row { display: flex; align-items: center; background: #f8f8f8; border-radius: 10px; padding: 2px; }
         .btn-qty { width: 40px; height: 40px; border: none; background: white; border-radius: 8px; font-size: 1.2rem; font-weight: bold; color: var(--primary); cursor: pointer; }
         .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
-
-        /* Dashboard Plein Écran */
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
         .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
         .dash-filters { background: white; padding: 10px; position: sticky; top: 48px; z-index: 305; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .filter-group { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 10px; }
         .btn-filter { padding: 6px 12px; border-radius: 15px; border: 1px solid #ddd; background: white; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
         .btn-filter.active { background: var(--secondary); color: white; border-color: var(--secondary); }
-        
-        /* Tableaux et Historique */
         .stat-card { background: white; margin: 10px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .stat-table th { background: #f8f8f8; padding: 10px; text-align: left; color: #666; }
         .stat-table td { padding: 12px 10px; border-bottom: 1px solid #eee; }
         .total-row { background: #f0f7ff; font-weight: bold; }
-        
-        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin: 5px 10px; border-radius: 10px; font-size: 0.85rem; border: 1px solid #eee; }
-        .btn-delete-archive { background: #ffebee; color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
-
-        /* Autres styles */
+        .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin: 5px 10px; border-radius: 10px; border: 1px solid #eee; }
+        .btn-delete-archive { background: #ffebee; color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
         .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 15px; display: flex; align-items: center; gap: 8px; border-radius: 8px; }
         .cat-fruits { background: #fff3e0; color: var(--fruit); }
         .cat-legumes { background: #e8f5e9; color: var(--vege); }
@@ -76,9 +65,9 @@
         <input type="text" id="new-product-name" placeholder="Nom (ex: Tomate)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; box-sizing: border-box;">
         <select id="new-product-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;">
             <option value="Fruit">🍎 Fruit</option>
-            <option value="Légume">Légume</option>
+            <option value="Légume">🥦 Légume</option>
         </select>
-        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER AU CATALOGUE</button>
+        <button onclick="addProduct()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold;">AJOUTER</button>
         <div id="config-list" style="margin-top:20px;"></div>
     </div>
 </div>
@@ -89,30 +78,18 @@
         <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px;">Retour</button>
     </div>
     <div class="dash-filters">
-        <div class="filter-group">
-            <button class="btn-filter active" onclick="setPeriod('day', this)">Aujourd'hui</button>
-            <button class="btn-filter" onclick="setPeriod('week', this)">7 derniers jours</button>
-            <button class="btn-filter" onclick="setPeriod('month', this)">Mois en cours</button>
-        </div>
-        <div class="filter-group">
-            <button class="btn-filter active" onclick="setCatFilter('all', this)">Tout</button>
-            <button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits</button>
-            <button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes</button>
-        </div>
+        <div class="filter-group"><button class="btn-filter active" onclick="setPeriod('day', this)">Aujourd'hui</button><button class="btn-filter" onclick="setPeriod('week', this)">7 jours</button><button class="btn-filter" onclick="setPeriod('month', this)">Mois</button></div>
+        <div class="filter-group"><button class="btn-filter active" onclick="setCatFilter('all', this)">Tout</button><button class="btn-filter" onclick="setCatFilter('Fruit', this)">🍎 Fruits</button><button class="btn-filter" onclick="setCatFilter('Légume', this)">🥦 Légumes</button></div>
     </div>
     <div id="dash-results"></div>
 </div>
 
 <div class="footer" id="footer-main">
-    <div style="font-size: 0.8rem; color: #888; font-weight: bold;">MODE SAISIE ACTIF</div>
+    <button onclick="generatePDF()" style="width:100%; max-width:500px; padding:15px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:bold;">📄 EXPORTER PDF ACTUEL</button>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    const firebaseConfig = { 
-        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" 
-    };
-    
+    const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const KEY_HASH = "Um9tYWluMzMxNDAq"; 
@@ -122,7 +99,6 @@
     let filterPeriod = 'day';
     let filterCat = 'all';
 
-    // --- SYNCHRO ---
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         globalData.products = val.products || [];
@@ -133,55 +109,29 @@
         if(document.getElementById('view-dashboard').style.display === 'block') renderDashContent();
     });
 
-    // --- NAVIGATION ---
     function switchTab(tab) {
         if (tab === 'admin') {
-            if (isSessionValid() || checkCode()) {
-                showView('view-admin'); updateTabUI('tab-admin');
-            }
+            if (isSessionValid() || checkCode()) { showView('view-admin'); updateTabUI('tab-admin'); document.getElementById('footer-main').classList.add('hidden'); }
         } else {
-            currentSite = tab;
-            showView('view-stock'); updateTabUI('tab-' + tab);
-            renderStock();
+            currentSite = tab; showView('view-stock'); updateTabUI('tab-' + tab); document.getElementById('footer-main').classList.remove('hidden'); renderStock();
         }
     }
 
-    function isSessionValid() {
-        const s = localStorage.getItem('adminSession');
-        return s && (new Date().getTime() - parseInt(s)) / 60000 < 20;
-    }
-
-    function checkCode() {
-        const p = prompt("Code Admin :");
-        if (p && btoa(p) === KEY_HASH) {
-            localStorage.setItem('adminSession', new Date().getTime());
-            return true;
-        }
-        alert("Accès refusé"); return false;
-    }
-
+    function isSessionValid() { const s = localStorage.getItem('adminSession'); return s && (new Date().getTime() - parseInt(s)) / 60000 < 20; }
+    function checkCode() { const p = prompt("Code Admin :"); if (p && btoa(p) === KEY_HASH) { localStorage.setItem('adminSession', new Date().getTime()); return true; } alert("Accès refusé"); return false; }
     function showView(id) { document.querySelectorAll('.content').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function updateTabUI(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-    // --- LOGIQUE STOCK ---
     function renderStock() {
         const container = document.getElementById('product-list');
         container.innerHTML = '';
         ["Fruit", "Légume"].forEach(cat => {
             const items = globalData.products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
             if(items.length > 0) {
-                const h = document.createElement('div');
-                h.className = `category-label ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}`;
-                h.innerHTML = `<span>${cat === 'Fruit' ? '🍎' : '🥦'}</span> ${cat}s`;
-                container.appendChild(h);
+                container.innerHTML += `<div class="category-label ${cat === 'Fruit' ? 'cat-fruits' : 'cat-legumes'}"><span>${cat === 'Fruit' ? '🍎' : '🥦'}</span> ${cat}s</div>`;
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
-                    container.innerHTML += `<div class="product-item"><b>${p.n}</b>
-                        <div class="controls-row">
-                            <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
-                            <div class="qty-val">${qty}</div>
-                            <button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button>
-                        </div></div>`;
+                    container.innerHTML += `<div class="product-item"><b>${p.n}</b><div class="controls-row"><button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button><div class="qty-val">${qty}</div><button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div></div>`;
                 });
             }
         });
@@ -193,7 +143,6 @@
         db.ref('stocks/' + name).set(globalData.stocks[name]);
     }
 
-    // --- LOGIQUE DASHBOARD ---
     function openDashboard() { document.getElementById('view-dashboard').style.display = 'block'; renderDashContent(); }
     function closeDashboard() { document.getElementById('view-dashboard').style.display = 'none'; }
     function setPeriod(p, btn) { filterPeriod = p; updateFilterUI(btn); renderDashContent(); }
@@ -205,62 +154,34 @@
         const now = new Date();
         const cumulated = {};
         let archiveHtml = "<h4 style='margin:20px 10px 10px;'>Détail des validations :</h4>";
-        
         globalData.products.forEach(p => cumulated[p.n] = { s: 0, v: 0, c: p.c });
-
         const keys = Object.keys(globalData.history).sort().reverse();
-
         keys.forEach(key => {
-            const h = globalData.history[key];
-            const hDate = new Date(parseInt(key));
-            let match = false;
-
+            const h = globalData.history[key]; const hDate = new Date(parseInt(key)); let match = false;
             if(filterPeriod === 'day') match = hDate.toDateString() === now.toDateString();
             else if(filterPeriod === 'week') { const weekAgo = new Date(); weekAgo.setDate(now.getDate() - 7); match = hDate > weekAgo; }
             else if(filterPeriod === 'month') match = hDate.getMonth() === now.getMonth();
-
             if(match) {
-                Object.keys(h.data).forEach(prodName => {
-                    if(cumulated[prodName]) {
-                        cumulated[prodName].s += h.data[prodName]['st-selve'] || 0;
-                        cumulated[prodName].v += h.data[prodName]['villenave'] || 0;
-                    }
-                });
-                archiveHtml += `<div class="archive-item">
-                    <span><b>${h.heure}</b> (${h.date})</span>
-                    <button class="btn-delete-archive" onclick="deleteArchive('${key}')">🗑️ ANNULER</button>
-                </div>`;
+                Object.keys(h.data).forEach(prodName => { if(cumulated[prodName]) { cumulated[prodName].s += h.data[prodName]['st-selve'] || 0; cumulated[prodName].v += h.data[prodName]['villenave'] || 0; } });
+                archiveHtml += `<div class="archive-item"><span><b>${h.heure}</b> (${h.date})</span><button class="btn-delete-archive" onclick="deleteArchive('${key}')">🗑️ ANNULER</button></div>`;
             }
         });
-
-        let tableHtml = `<div class="stat-card"><table class="stat-table">
-            <tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>Cumul</th></tr>`;
+        let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>Cumul</th></tr>`;
         let grandS = 0, grandV = 0;
         Object.keys(cumulated).sort().forEach(name => {
-            const d = cumulated[name];
-            if((filterCat === 'all' || d.c === filterCat) && (d.s > 0 || d.v > 0)) {
-                tableHtml += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${d.s + d.v}</b></td></tr>`;
-                grandS += d.s; grandV += d.v;
+            const d = cumulated[name]; if((filterCat === 'all' || d.c === filterCat) && (d.s > 0 || d.v > 0)) {
+                tableHtml += `<tr><td>${name}</td><td>${d.s}</td><td>${d.v}</td><td><b>${d.s + d.v}</b></td></tr>`; grandS += d.s; grandV += d.v;
             }
         });
         tableHtml += `<tr class="total-row"><td>TOTAL</td><td>${grandS}</td><td>${grandV}</td><td>${grandS + grandV}</td></tr></table></div>`;
         results.innerHTML = tableHtml + archiveHtml;
     }
 
-    function deleteArchive(timestamp) {
-        if(confirm("Supprimer cette archive ? Cela modifiera les cumuls ci-dessus.")) {
-            db.ref('history/' + timestamp).remove();
-        }
-    }
-
+    function deleteArchive(timestamp) { if(confirm("Supprimer cette archive ?")) db.ref('history/' + timestamp).remove(); }
     function validateStocks() {
-        if(!confirm("Voulez-vous archiver l'état actuel des stocks ?")) return;
+        if(!confirm("Voulez-vous archiver l'état actuel ?")) return;
         const now = new Date();
-        db.ref('history/' + now.getTime()).set({
-            date: now.toLocaleDateString('fr-FR'),
-            heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            data: globalData.stocks
-        }).then(() => alert("Archive créée !"));
+        db.ref('history/' + now.getTime()).set({ date: now.toLocaleDateString('fr-FR'), heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), data: globalData.stocks }).then(() => alert("Archivé !"));
     }
 
     function addProduct() {
@@ -273,18 +194,23 @@
         const container = document.getElementById('config-list');
         container.innerHTML = '<p style="font-size:0.8rem; color:#888;">Catalogue :</p>';
         globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
-            container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.85rem">
-                <span>${p.n} <small>(${p.c})</small></span>
-                <span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer</span>
-            </div>`;
+            container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.85rem"><span>${p.n} <small>(${p.c})</small></span><span style="color:red; cursor:pointer;" onclick="removeProduct('${p.n}')">Supprimer</span></div>`;
         });
     }
 
-    function removeProduct(name) {
-        if(confirm("Supprimer du catalogue ?")) {
-            db.ref('products').set(globalData.products.filter(p => p.n !== name));
-            db.ref('stocks/' + name).remove();
-        }
+    function removeProduct(name) { if(confirm("Supprimer ?")) { db.ref('products').set(globalData.products.filter(p => p.n !== name)); db.ref('stocks/' + name).remove(); } }
+
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const rows = [];
+        globalData.products.forEach(p => {
+            const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
+            if (s['st-selve'] > 0 || s['villenave'] > 0) rows.push([p.n, p.c, s['st-selve'], s['villenave']]);
+        });
+        doc.text("INVENTAIRE ACTUEL - " + new Date().toLocaleDateString(), 14, 15);
+        doc.autoTable({ head: [['Produit', 'Type', 'St Selve', 'Villenave']], body: rows, startY: 20 });
+        doc.save("Inventaire_Romain.pdf");
     }
 </script>
 </body>
