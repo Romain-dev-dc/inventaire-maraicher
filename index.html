@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Payet Primeur - Gestion Stocks</title>
+    <title>Payet Primeur - Gestion</title>
 
-    <link rel="icon" type="image/png" href="https://scontent-cdg4-2.cdninstagram.com/v/t51.2885-19/475459310_633634352336341_1067258440742239459_n.jpg?_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=109&_nc_ohc=8vQW9tX-tO8Q7kNvgE57GqH&_nc_oc=AdhO2D1Y4xQO3-pU-q-h_XmB9YjH6u7Z6M8i6xPzP5oU1-A&_nc_gid=0&edm=AL-479YAAAAA&oh=00_AYC-k1P7v0w6-1Q&oe=67AA7C9C">
-    <link rel="apple-touch-icon" href="https://scontent-cdg4-2.cdninstagram.com/v/t51.2885-19/475459310_633634352336341_1067258440742239459_n.jpg?_nc_ht=scontent-cdg4-2.cdninstagram.com&_nc_cat=109&_nc_ohc=8vQW9tX-tO8Q7kNvgE57GqH&_nc_oc=AdhO2D1Y4xQO3-pU-q-h_XmB9YjH6u7Z6M8i6xPzP5oU1-A&_nc_gid=0&edm=AL-479YAAAAA&oh=00_AYC-k1P7v0w6-1Q&oe=67AA7C9C">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Payet Stocks">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Payet Stock">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -23,50 +23,28 @@
             --primary: #2e7d32; --secondary: #1976d2; --bg: #f4f7f6; 
             --fruit: #e67e22; --vege: #27ae60; --aromate: #0097a7; --epicerie: #673ab7; --danger: #d32f2f; 
         }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg); margin: 0; padding-bottom: 20px; 
-            touch-action: manipulation; -webkit-user-select: none; user-select: none; 
-        }
-
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 20px; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .tabs { display: flex; background: white; position: sticky; top: 48px; z-index: 150; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tab { flex: 1; padding: 15px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; }
         .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f0f7f0; }
-        
         .content { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
         .content.active { display: block; }
-
         .product-item { background: white; margin-bottom: 10px; padding: 12px 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .product-name { font-size: 1rem; color: #333; font-weight: 600; }
         .controls-row { display: flex; align-items: center; background: #f1f1f1; border-radius: 12px; padding: 3px; }
-        
-        .btn-qty { 
-            width: 44px; height: 44px; border: none; background: white; border-radius: 10px; 
-            font-size: 1.4rem; font-weight: bold; color: var(--primary); 
-            cursor: pointer; touch-action: manipulation; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .btn-qty:active { background: #eee; }
-        .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; color: #333; }
-        
-        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 20px; border-radius: 8px; letter-spacing: 0.5px; }
+        .btn-qty { width: 44px; height: 44px; border: none; background: white; border-radius: 10px; font-size: 1.4rem; font-weight: bold; color: var(--primary); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .qty-val { min-width: 45px; text-align: center; font-size: 1.1rem; font-weight: 800; }
+        .category-label { padding: 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-top: 20px; border-radius: 8px; }
         .cat-Fruit { background: #fff3e0; color: var(--fruit); }
         .cat-Légume { background: #e8f5e9; color: var(--vege); }
         .cat-Aromate { background: #e0f7fa; color: var(--aromate); }
         .cat-Épicerie { background: #f3e5f5; color: var(--epicerie); }
-        
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; transition: transform 0.1s; }
-        .btn-main:active { transform: scale(0.98); }
-        
-        /* Dashboard Overlay */
+        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: bold; margin-bottom: 15px; font-size: 1rem; cursor: pointer; }
         #view-dashboard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 300; overflow-y: auto; display: none; }
         .dash-header { background: #333; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 310;}
-        .chart-container { background: white; margin: 10px; padding: 15px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 280px; }
-        .stat-card { background: white; margin: 10px; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .chart-container { background: white; margin: 10px; padding: 15px; border-radius: 15px; height: 280px; }
         .stat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .stat-table th { background: #f8f8f8; padding: 12px 10px; text-align: left; color: #666; border-bottom: 2px solid #eee; }
-        .stat-table td { padding: 14px 10px; border-bottom: 1px solid #eee; color: #333; }
+        .stat-table td, .stat-table th { padding: 12px 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -80,7 +58,7 @@
 </div>
 
 <div id="view-stock" class="content active">
-    <div id="product-list">Connexion au serveur...</div>
+    <div id="product-list">Chargement...</div>
 </div>
 
 <div id="view-admin" class="content">
@@ -88,33 +66,29 @@
     <button class="btn-main" style="background:#333; color:white;" onclick="generatePDF()">📄 EXPORTER EN PDF</button>
     <button class="btn-main" style="background:var(--secondary); color:white;" onclick="openDashboard()">📊 DASHBOARD & CUMULS</button>
     <button class="btn-main" style="background:white; color:var(--danger); border: 2px solid var(--danger);" onclick="resetAllStocks()">🔄 REMISE À ZÉRO DES STOCKS</button>
-    
     <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
-    
     <div id="config-list"></div>
 </div>
 
 <div id="view-dashboard">
     <div class="dash-header">
-        <span>📊 ANALYSE GÉNÉRALE</span>
-        <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:6px 12px; border-radius:8px; font-weight:bold;">Fermer</button>
+        <span>📊 ANALYSE</span>
+        <button onclick="closeDashboard()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:8px;">Fermer</button>
     </div>
     <div class="chart-container"><canvas id="myPieChart"></canvas></div>
     <div id="dash-results"></div>
 </div>
 
 <script>
-    // Configuration Firebase
     const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
-    const KEY_HASH = "Um9tYWluMzMxNDAq"; // Code admin
+    const KEY_HASH = "Um9tYWluMzMxNDAq"; 
 
     let currentSite = 'st-selve';
     let globalData = { products: [], stocks: {}, history: {} };
     let myChart = null;
 
-    // Écoute des données en temps réel
     db.ref('/').on('value', (snapshot) => {
         const val = snapshot.val() || {};
         globalData.products = val.products || [];
@@ -130,9 +104,7 @@
         if (tab === 'admin') {
             if (isSessionValid() || checkCode()) { showView('view-admin'); renderAdmin(); }
             else { switchTab(currentSite); }
-        } else {
-            currentSite = tab; showView('view-stock'); renderStock();
-        }
+        } else { currentSite = tab; showView('view-stock'); renderStock(); }
     }
 
     function isSessionValid() { 
@@ -153,24 +125,15 @@
 
     function renderStock() {
         const container = document.getElementById('product-list');
-        if (globalData.products.length === 0) { container.innerHTML = "<p style='text-align:center; padding:20px;'>Catalogue vide.</p>"; return; }
+        if (globalData.products.length === 0) { container.innerHTML = "<p style='text-align:center;'>Catalogue vide.</p>"; return; }
         container.innerHTML = '';
-        
         ["Fruit", "Légume", "Aromate", "Épicerie"].forEach(cat => {
             const items = globalData.products.filter(p => p.c === cat).sort((a,b) => a.n.localeCompare(b.n));
             if(items.length > 0) {
                 container.innerHTML += `<div class="category-label cat-${cat}">${cat}s</div>`;
                 items.forEach(p => {
                     const qty = (globalData.stocks[p.n] && globalData.stocks[p.n][currentSite]) || 0;
-                    container.innerHTML += `
-                        <div class="product-item">
-                            <span class="product-name">${p.n}</span>
-                            <div class="controls-row">
-                                <button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button>
-                                <div class="qty-val">${qty}</div>
-                                <button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button>
-                            </div>
-                        </div>`;
+                    container.innerHTML += `<div class="product-item"><span><b>${p.n}</b></span><div class="controls-row"><button class="btn-qty" onclick="updateQty('${p.n}', -1)">-</button><div class="qty-val">${qty}</div><button class="btn-qty" onclick="updateQty('${p.n}', 1)">+</button></div></div>`;
                 });
             }
         });
@@ -183,10 +146,10 @@
     }
 
     function resetAllStocks() {
-        if(confirm("⚠️ Confirmer la remise à zéro de tous les stocks ?")) {
+        if(confirm("Réinitialiser tous les stocks à zéro ?")) {
             const resetData = {};
             globalData.products.forEach(p => { resetData[p.n] = { 'st-selve': 0, 'villenave': 0 }; });
-            db.ref('stocks').set(resetData).then(() => alert("Stocks réinitialisés."));
+            db.ref('stocks').set(resetData);
         }
     }
 
@@ -194,22 +157,22 @@
         const container = document.getElementById('config-list');
         container.innerHTML = `
             <div style="background:white; padding:15px; border-radius:15px; border:1px solid #ddd;">
-                <h3 style="margin-top:0; color:var(--primary);">Nouveau Produit</h3>
-                <input type="text" id="new-p" placeholder="Nom du produit" style="width:100%; padding:12px; margin-bottom:12px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; font-size:1rem;">
-                <select id="new-c" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ccc; font-size:1rem; background:white;">
+                <h3 style="margin-top:0;">Nouveau Produit</h3>
+                <input type="text" id="new-p" placeholder="Nom" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box;">
+                <select id="new-c" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ccc; background:white;">
                     <option value="Fruit">🍎 Fruit</option>
                     <option value="Légume">🥦 Légume</option>
                     <option value="Aromate">🌿 Aromate</option>
                     <option value="Épicerie">🥫 Épicerie</option>
                 </select>
-                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER AU CATALOGUE</button>
+                <button onclick="addP()" class="btn-main" style="background:#333; color:white; margin:0;">AJOUTER</button>
             </div>
             <div id="p-list" style="margin-top:20px;"></div>
         `;
         const list = document.getElementById('p-list');
         globalData.products.sort((a,b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c)).forEach(p => {
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; font-size:0.9rem; background:white;">
-                <span><b>[${p.c}]</b> ${p.n}</span>
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; background:white;">
+                <span><b>${p.c}</b> : ${p.n}</span>
                 <span style="color:var(--danger); font-weight:bold;" onclick="removeP('${p.n}')">Supprimer</span>
             </div>`;
         });
@@ -222,7 +185,7 @@
     }
 
     function removeP(name) {
-        if(confirm("Supprimer ce produit définitivement ?")) {
+        if(confirm("Supprimer ce produit ?")) {
             db.ref('products').set(globalData.products.filter(p => p.n !== name));
             db.ref('stocks/' + name).remove();
         }
@@ -235,8 +198,7 @@
         const results = document.getElementById('dash-results');
         let tableHtml = `<div class="stat-card"><table class="stat-table"><tr><th>Produit</th><th>Selve</th><th>Vill.</th><th>TOTAL</th></tr>`;
         let labels = [], dataValues = [];
-        
-        globalData.products.sort((a,b)=>a.n.localeCompare(b.n)).forEach(p => {
+        globalData.products.forEach(p => {
             const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
             const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
             if (total > 0) {
@@ -245,24 +207,19 @@
             }
         });
         results.innerHTML = tableHtml + `</table></div>`;
-        
         const ctx = document.getElementById('myPieChart').getContext('2d');
         if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, { 
-            type: 'pie', 
-            data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c','#00bcd4','#9c27b0','#34495e'] }] }, 
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } } } 
-        });
+        myChart = new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: ['#2ecc71','#3498db','#9b59b6','#f1c40f','#e67e22','#e74c3c','#1abc9c','#00bcd4','#9c27b0'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } } } });
     }
 
     function validateStocks() {
-        if(!confirm("Archiver l'état actuel de l'inventaire ?")) return;
+        if(!confirm("Archiver ?")) return;
         const now = new Date();
         db.ref('history/' + now.getTime()).set({
             date: now.toLocaleDateString('fr-FR'),
             heure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             data: globalData.stocks
-        }).then(() => alert("Inventaire archivé avec succès !"));
+        }).then(() => alert("Archivé !"));
     }
 
     function generatePDF() {
@@ -270,29 +227,15 @@
         const doc = new jsPDF();
         const rows = [];
         const sorted = [...globalData.products].sort((a, b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c));
-        
         sorted.forEach(p => {
             const s = globalData.stocks[p.n] || { 'st-selve': 0, 'villenave': 0 };
             const total = (s['st-selve'] || 0) + (s['villenave'] || 0);
             if (total > 0) rows.push([p.c, p.n, s['st-selve'], s['villenave'], total, ""]);
         });
-
         doc.setFontSize(18);
-        doc.setTextColor(46, 125, 50);
         doc.text("PAYET PRIMEUR - INVENTAIRE", 14, 20);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text("Date : " + new Date().toLocaleString(), 14, 28);
-
-        doc.autoTable({ 
-            head: [['Catégorie', 'Produit', 'St-Selve', 'Villenave', 'TOTAL', 'FAIT']], 
-            body: rows, 
-            startY: 35, 
-            headStyles: { fillColor: [46, 125, 50] }, 
-            styles: { fontSize: 9 },
-            columnStyles: { 5: { cellWidth: 20 } }
-        });
-        doc.save("Inventaire_PayetPrimeur_" + new Date().toLocaleDateString() + ".pdf");
+        doc.autoTable({ head: [['Cat.', 'Produit', 'Selve', 'Vill.', 'TOTAL', 'FAIT']], body: rows, startY: 30, headStyles: { fillColor: [46, 125, 50] }, styles: { fontSize: 8 } });
+        doc.save("Inventaire_Payet.pdf");
     }
 </script>
 </body>
