@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Payet Primeur Pro</title>
 
+    <link rel="icon" type="image/png" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -85,13 +88,8 @@
             box-shadow: var(--shadow); cursor: pointer; border: 3px solid transparent; box-sizing: border-box;
         }
         
-        /* Jour Aujourd'hui */
         .calendar-day.today { background: var(--primary); color: white; border: none; }
-        
-        /* Jour Sélectionné (Normal) */
         .calendar-day.selected { border-color: var(--primary); background: #f0fdf4; color: var(--primary); }
-        
-        /* Jour Aujourd'hui ET Sélectionné */
         .calendar-day.today.selected { border-color: white; background: var(--primary); color: white; box-shadow: 0 0 0 3px var(--primary), var(--shadow); }
 
         .dot-box { display: flex; gap: 2px; position: absolute; bottom: 5px; }
@@ -161,7 +159,7 @@
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow);">
         <h3>Gestion Globale</h3>
         <button class="btn-main" onclick="generatePDF()" style="background:#1e293b; margin-bottom:10px;">📄 EXPORTER STOCK PDF</button>
-        <button class="btn-main" onclick="resetStocks()" style="background:white; color:red; border:2px solid red;">🔄 RESET TOUTES LES QUANTITÉS</button>
+        <button class="btn-main" onclick="resetStocks()" style="background:white; color:red; border:1px solid red;">🔄 RESET TOUTES LES QUANTITÉS</button>
     </div>
     <div id="admin-p-list" style="margin-top:20px;"></div>
 </div>
@@ -244,11 +242,7 @@
             const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const el = document.createElement('div'); el.className = 'calendar-day';
             el.innerHTML = `<span>${d}</span>`;
-            
-            // Gestion d'Aujourd'hui
             if(d === new Date().getDate() && m === new Date().getMonth() && y === new Date().getFullYear()) el.classList.add('today');
-            
-            // Gestion du Sélectionné
             if(dStr === selDate) el.classList.add('selected');
 
             const resToday = Object.values(data.reservations).filter(r => r.date === dStr);
@@ -258,11 +252,7 @@
                 if(resToday.some(r => r.boutique === 'villenave')) dots += '<div class="dot dot-v"></div>';
                 el.innerHTML += dots + '</div>';
             }
-            el.onclick = () => { 
-                selDate = dStr; 
-                renderCalendar(); // Force le rafraîchissement pour afficher la bordure
-                showDay(dStr); 
-            };
+            el.onclick = () => { selDate = dStr; renderCalendar(); showDay(dStr); };
             grid.appendChild(el);
         }
     }
