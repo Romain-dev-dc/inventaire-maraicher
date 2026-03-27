@@ -104,7 +104,7 @@
 <header>PAYET PRIMEUR</header>
 
 <div class="tabs">
-    <div class="tab active" id="tab-st-selve" onclick="switchTab('st-selve')">Selve</div>
+    <div class="tab active" id="tab-st-selve" onclick="switchTab('st-selve')">St Selve</div>
     <div class="tab" id="tab-villenave" onclick="switchTab('villenave')">Villenave</div>
     <div class="tab" id="tab-agenda" onclick="switchTab('agenda')">Agenda</div>
     <div class="tab" id="tab-admin" onclick="switchTab('admin')">Admin</div>
@@ -170,7 +170,7 @@
     });
 
     function switchTab(t) {
-        if(t === 'admin' && prompt("Code administrateur ?") !== "1987") return;
+        if(t === 'admin' && prompt("Code administrateur ?") !== "Tomate47*") return;
         document.querySelectorAll('.tab, .content').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
         if(t === 'agenda') document.getElementById('view-agenda').classList.add('active');
