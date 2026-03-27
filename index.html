@@ -44,7 +44,6 @@
         .content { padding: 0 15px; max-width: 600px; margin: 0 auto; display: none; }
         .content.active { display: block; animation: fadeIn 0.3s; }
 
-        /* STOCKS */
         .cat-label { 
             margin: 20px 0 10px 5px; font-weight: 800; font-size: 0.7rem; 
             text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; 
@@ -73,21 +72,8 @@
         }
         .qty-val { font-weight: 800; min-width: 35px; text-align: center; font-size: 1.1rem; }
 
-        /* AGENDA */
-        .legende {
-            display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;
-            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-        }
-        .leg-item { display: flex; align-items: center; gap: 5px; }
-        .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
-
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        
-        /* Style pour les initiales des jours */
-        .day-header { 
-            text-align: center; font-size: 0.7rem; font-weight: 900; color: #94a3b8; 
-            padding-bottom: 5px; text-transform: uppercase; 
-        }
+        .day-header { text-align: center; font-size: 0.7rem; font-weight: 900; color: #94a3b8; padding-bottom: 5px; text-transform: uppercase; }
 
         .calendar-day { 
             aspect-ratio: 1/1; background: white; border-radius: 12px; display: flex; flex-direction: column; 
@@ -97,21 +83,18 @@
         
         .calendar-day.today { background: var(--primary); color: white; border: none; }
         .calendar-day.selected { border-color: var(--primary); background: #f0fdf4; color: var(--primary); }
-        .calendar-day.today.selected { border-color: white; background: var(--primary); color: white; box-shadow: 0 0 0 3px var(--primary), var(--shadow); }
 
         .dot-box { display: flex; gap: 2px; position: absolute; bottom: 5px; }
         .dot { width: 5px; height: 5px; border-radius: 50%; border: 1px solid white; }
         .dot-s { background: var(--selve-color); }
         .dot-v { background: var(--ville-color); }
 
-        /* MODALES & ADMIN */
         .field { margin-bottom: 15px; }
         .field label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 1rem; background: #f8fafc; box-sizing: border-box; }
         .btn-main { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; background: var(--primary); color: white; margin-top: 10px; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
         .modal-box { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; }
-        .group-item { background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; margin-bottom: 10px; }
         .hidden { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -132,11 +115,7 @@
 </div>
 
 <div id="view-agenda" class="content">
-    <div class="legende">
-        <div class="leg-item"><div class="leg-dot" style="background:var(--selve-color)"></div> St Selve</div>
-        <div class="leg-item"><div class="leg-dot" style="background:var(--ville-color)"></div> Villenave</div>
-    </div>
-    <div class="cal-nav" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <div class="cal-nav" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 0 10px;">
         <button onclick="changeMonth(-1)" style="border:none; background:white; padding:10px; border-radius:10px; box-shadow:var(--shadow)">❮</button>
         <h3 id="cal-month" style="margin:0; text-transform: capitalize; font-weight:800;"></h3>
         <button onclick="changeMonth(1)" style="border:none; background:white; padding:10px; border-radius:10px; box-shadow:var(--shadow)">❯</button>
@@ -156,7 +135,7 @@
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow);">
         <h3>Gestion Globale</h3>
         <button class="btn-main" onclick="generatePDF()" style="background:#1e293b; margin-bottom:10px;">📄 EXPORTER STOCK PDF</button>
-        <button class="btn-main" onclick="resetStocks()" style="background:white; color:red; border:2px solid red;">🔄 RESET TOUTES LES QUANTITÉS</button>
+        <button class="btn-main" onclick="resetStocks()" style="background:white; color:red; border:1px solid red;">🔄 RESET TOUTES LES QUANTITÉS</button>
     </div>
     <div id="admin-p-list" style="margin-top:20px;"></div>
 </div>
@@ -185,11 +164,13 @@
     db.ref('/').on('value', (snap) => {
         const d = snap.val() || {};
         data = { products: d.products || [], stocks: d.stocks || {}, reservations: d.reservations || {} };
+        // Tri global par nom pour l'affichage app
+        data.products.sort((a, b) => a.n.localeCompare(b.n));
         renderStock(); renderCalendar(); if(selDate) showDay(selDate);
     });
 
     function switchTab(t) {
-        if(t === 'admin' && prompt("Code administrateur ?") !== "Tomate47*") return;
+        if(t === 'admin' && prompt("Code administrateur ?") !== "1987") return;
         document.querySelectorAll('.tab, .content').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
         if(t === 'agenda') document.getElementById('view-agenda').classList.add('active');
@@ -219,43 +200,33 @@
 
     function addProduct() {
         const n = document.getElementById('new-p-name').value.trim(), c = document.getElementById('new-p-cat').value;
-        if(n) { data.products.push({n, c}); db.ref('products').set(data.products); document.getElementById('new-p-name').value = ''; renderAdmin(); }
+        if(n) { 
+            data.products.push({n, c}); 
+            db.ref('products').set(data.products); 
+            document.getElementById('new-p-name').value = ''; 
+            renderAdmin(); 
+        }
     }
 
     function changeMonth(o) { viewDate.setMonth(viewDate.getMonth() + o); renderCalendar(); }
-    
     function renderCalendar() {
         const header = document.getElementById('calendar-header');
         const grid = document.getElementById('calendar-grid');
         header.innerHTML = ''; grid.innerHTML = '';
-        
         const m = viewDate.getMonth(), y = viewDate.getFullYear();
         document.getElementById('cal-month').innerText = viewDate.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
-
-        // Affichage des en-têtes (L M M J V S D)
         const daysShort = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-        daysShort.forEach(d => {
-            header.innerHTML += `<div class="day-header">${d}</div>`;
-        });
-
+        daysShort.forEach(d => { header.innerHTML += `<div class="day-header">${d}</div>`; });
         const firstDay = new Date(y, m, 1).getDay();
-        const offset = (firstDay === 0 ? 7 : firstDay) - 1; // Ajustement pour que la semaine commence Lundi
+        const offset = (firstDay === 0 ? 7 : firstDay) - 1;
         const daysInMonth = new Date(y, m + 1, 0).getDate();
-
-        // Cases vides pour le début du mois
-        for (let i = 0; i < offset; i++) {
-            grid.appendChild(document.createElement('div'));
-        }
-
-        // Les jours du mois
+        for (let i = 0; i < offset; i++) { grid.appendChild(document.createElement('div')); }
         for(let d=1; d<=daysInMonth; d++) {
             const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const el = document.createElement('div'); el.className = 'calendar-day';
             el.innerHTML = `<span>${d}</span>`;
-            
             if(d === new Date().getDate() && m === new Date().getMonth() && y === new Date().getFullYear()) el.classList.add('today');
             if(dStr === selDate) el.classList.add('selected');
-
             const resToday = Object.values(data.reservations).filter(r => r.date === dStr);
             if(resToday.length) {
                 let dots = '<div class="dot-box">';
@@ -274,17 +245,9 @@
         let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;"><h4 style="margin:0">Commandes du ${d}</h4><button onclick="openModal('${d}')" style="background:var(--primary); color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:800;">+ AJOUTER</button></div>`;
         res.forEach(([id, r]) => {
             const dotCol = r.boutique==='st-selve'?'var(--selve-color)':'var(--ville-color)';
-            html += `<div class="product-card" style="border-left:6px solid ${dotCol}">
-                <div style="flex:1">
-                    <div style="display:flex; align-items:center; gap:8px;"><div style="width:10px; height:10px; border-radius:50%; background:${dotCol}"></div><b>${r.client}</b></div>
-                    <span style="color:var(--secondary); font-size:0.9rem; font-weight:700;">📞 ${r.tel||'Pas de tel'}</span><br>
-                    <span style="font-size:0.85rem; font-weight:600;">${r.type} ${r.prix||''}</span><br>
-                    <i style="font-size:0.8rem; color:gray;">${r.desc||''}</i>
-                </div>
-                <button onclick="delRes('${id}')" style="background:#fff1f2; border:none; padding:10px; border-radius:10px; color:red;">🗑️</button>
-            </div>`;
+            html += `<div class="product-card" style="border-left:6px solid ${dotCol}"><div style="flex:1"><b>${r.client}</b><br>📞 ${r.tel||'--'}<br>${r.type} ${r.prix||''}<br><i style="font-size:0.8rem;">${r.desc||''}</i></div><button onclick="delRes('${id}')" style="color:red; background:none; border:none;">🗑️</button></div>`;
         });
-        cont.innerHTML = html; cont.scrollIntoView();
+        cont.innerHTML = html;
     }
 
     function openModal(d) { selDate = d; document.getElementById('modal-res').classList.remove('hidden'); toggleForm(); }
@@ -294,14 +257,6 @@
         document.getElementById('field-prix').classList.toggle('hidden', t !== 'panier');
         document.getElementById('section-single').classList.toggle('hidden', isM);
         document.getElementById('section-multi').classList.toggle('hidden', !isM);
-        if(isM) drawMulti();
-    }
-
-    function drawMulti() {
-        const c = document.getElementById('res-count').value, cont = document.getElementById('multi-cont'); cont.innerHTML = '';
-        for(let i=0; i<Math.min(c,20); i++) {
-            cont.innerHTML += `<div class="group-item"><label style="font-size:0.6rem; color:var(--primary); font-weight:900;">CLIENT ${i+1}</label><input type="text" class="g-n" placeholder="Nom du client"><input type="tel" class="g-t" placeholder="N° de téléphone" style="margin-top:8px;"></div>`;
-        }
     }
 
     function saveRes() {
@@ -321,27 +276,51 @@
     }
 
     function pushRes(boutique, type, client, tel, prix, desc) { db.ref('reservations').push({ date: selDate, boutique, type, client, tel, prix, desc }); }
-    function delRes(id) { if(confirm("Supprimer la commande ?")) db.ref('reservations/'+id).remove(); }
-    function delProd(n) { if(confirm("Retirer du catalogue ?")) { db.ref('products').set(data.products.filter(p => p.n !== n)); db.ref('stocks/'+n).remove(); }}
-    function resetStocks() { if(confirm("Reset les stocks à 0 ?")) { const r = {}; data.products.forEach(p => r[p.n] = {'st-selve':0, 'villenave':0}); db.ref('stocks').set(r); }}
+    function delRes(id) { if(confirm("Supprimer ?")) db.ref('reservations/'+id).remove(); }
+    function delProd(n) { if(confirm("Supprimer ?")) { db.ref('products').set(data.products.filter(p => p.n !== n)); db.ref('stocks/'+n).remove(); }}
+    function resetStocks() { if(confirm("Reset tout à 0 ?")) { const r = {}; data.products.forEach(p => r[p.n] = {'st-selve':0, 'villenave':0}); db.ref('stocks').set(r); }}
 
     function renderAdmin() {
         const cont = document.getElementById('admin-p-list'); cont.innerHTML = "<h4>Produits au catalogue</h4>";
         data.products.forEach(p => {
-            cont.innerHTML += `<div class="product-card"><span><b>${p.n}</b> (${p.c})</span><button onclick="delProd('${p.n}')" style="color:red; border:none; background:none; font-weight:bold;">Effacer</button></div>`;
+            cont.innerHTML += `<div class="product-card"><span><b>${p.n}</b> (${p.c})</span><button onclick="delProd('${p.n}')" style="color:red; border:none; background:none;">Effacer</button></div>`;
         });
     }
 
     function generatePDF() {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFontSize(18); doc.setTextColor(39, 174, 96); doc.text("INVENTAIRE PAYET PRIMEUR", 14, 20);
-        const rows = [];
-        data.products.forEach(p => {
+        
+        // 1. Filtrer les produits avec stock > 0
+        let filtered = data.products.filter(p => {
             const s = data.stocks[p.n] || {'st-selve':0, 'villenave':0};
-            rows.push([p.c, p.n, s['st-selve']||0, s['villenave']||0]);
+            return (s['st-selve'] || 0) > 0 || (s['villenave'] || 0) > 0;
         });
-        doc.autoTable({ head: [['Cat.', 'Produit', 'Selve', 'Vill.']], body: rows, startY: 30, headStyles: {fillColor:[39, 174, 96]} });
-        doc.save("Inventaire_Stock.pdf");
+
+        // 2. TRIER : Par Catégorie d'abord (Fruit, Légume, etc.), puis par Nom
+        filtered.sort((a, b) => {
+            if (a.c < b.c) return -1;
+            if (a.c > b.c) return 1;
+            return a.n.localeCompare(b.n);
+        });
+
+        const rows = filtered.map(p => {
+            const s = data.stocks[p.n] || {'st-selve':0, 'villenave':0};
+            return [p.c, p.n, s['st-selve'] || 0, s['villenave'] || 0];
+        });
+
+        if(rows.length === 0) {
+            doc.setFontSize(12); doc.setTextColor(100); doc.text("Aucun produit en stock actuellement.", 14, 35);
+        } else {
+            doc.autoTable({ 
+                head: [['Cat.', 'Produit', 'Selve', 'Vill.']], 
+                body: rows, 
+                startY: 30, 
+                headStyles: {fillColor:[39, 174, 96]},
+                theme: 'striped'
+            });
+        }
+        doc.save("Inventaire_Payet_Primeur.pdf");
     }
 </script>
 </body>
