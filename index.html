@@ -7,7 +7,8 @@
 
     <link rel="icon" type="image/png" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
     <link rel="apple-touch-icon" href="https://i.ibb.co/CK46GbS2/515506195-18231841738288881-6877506158939999563-n.jpg">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -263,8 +264,12 @@
                         ${r.desc ? `<div class="res-notes">"${r.desc}"</div>` : ''}
                     </div>
                     <div class="res-actions">
-                        <button class="btn-check" onclick="toggleDone('${id}', ${r.done})">${r.done ? '🔄' : '✅'}</button>
-                        <button class="btn-del" onclick="delRes('${id}')">🗑️</button>
+                        <button class="btn-check" onclick="toggleDone('${id}', ${r.done})">
+                            ${r.done ? '🔄' : '<i class="fa-solid fa-check" style="color: hsl(145, 63%, 42%);"></i>'}
+                        </button>
+                        <button class="btn-del" onclick="delRes('${id}')">
+                            <i class="fa-solid fa-trash" style="color: rgb(175, 71, 40);"></i>
+                        </button>
                     </div>
                 </div>`;
         });
