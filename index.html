@@ -20,7 +20,7 @@
             --primary: #27ae60; --primary-dark: #1e8449;
             --secondary: #3498db; --bg: #f8fafc; --text: #1e293b;
             --selve-color: #27ae60; --ville-color: #3498db;
-            --cat-fruit: #f39c12; --cat-vege: #27ae60; --cat-aromate: #0097a7; --cat-epicerie: #9b59b6;
+            --cat-fruit: #f39c12; --cat-vege: #27ae60; --cat-aromate: #0097a7; --cat-epicerie: #9b59b6; --cat-fourniture: #7f8c8d;
             --radius: 18px; --shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
             --danger-color: rgb(175, 71, 40);
         }
@@ -52,12 +52,14 @@
         .label-Légume { background: var(--cat-vege); }
         .label-Aromate { background: var(--cat-aromate); }
         .label-Épicerie { background: var(--cat-epicerie); }
+        .label-Fourniture { background: var(--cat-fourniture); }
 
         .product-card { background: white; margin-bottom: 10px; padding: 15px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); border-left: 6px solid transparent; }
         .border-Fruit { border-left-color: var(--cat-fruit); }
         .border-Légume { border-left-color: var(--cat-vege); }
         .border-Aromate { border-left-color: var(--cat-aromate); }
         .border-Épicerie { border-left-color: var(--cat-epicerie); }
+        .border-Fourniture { border-left-color: var(--cat-fourniture); }
 
         .controls { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 12px; }
         .btn-qty { width: 44px; height: 44px; border: none; background: white; border-radius: 10px; font-size: 1.4rem; font-weight: bold; color: var(--primary); cursor: pointer; }
@@ -137,7 +139,7 @@
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow); margin-bottom:20px;">
         <h3 style="margin-top:0;">Ajouter un Produit</h3>
         <div class="field"><label>Nom du produit</label><input type="text" id="new-p-name" placeholder="Ex: Clémentine"></div>
-        <div class="field"><label>Catégorie</label><select id="new-p-cat"><option value="Fruit">Fruit</option><option value="Légume">Légume</option><option value="Aromate">Aromate</option><option value="Épicerie">Épicerie</option></select></div>
+        <div class="field"><label>Catégorie</label><select id="new-p-cat"><option value="Fruit">Fruit</option><option value="Légume">Légume</option><option value="Aromate">Aromate</option><option value="Épicerie">Épicerie</option><option value="Fourniture">Fourniture</option></select></div>
         <button class="btn-main" onclick="addProduct()">AJOUTER AU CATALOGUE</button>
     </div>
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow);">
@@ -199,10 +201,10 @@
 
     function renderStock() {
         const cont = document.getElementById('product-list'); cont.innerHTML = '';
-        ["Fruit", "Légume", "Aromate", "Épicerie"].forEach(cat => {
+        ["Fruit", "Légume", "Aromate", "Épicerie", "Fourniture"].forEach(cat => {
             const items = data.products.filter(p => p.c === cat);
             if(items.length) {
-                cont.innerHTML += `<div class="cat-label label-${cat}">${cat}s</div>`;
+                cont.innerHTML += `<div class="cat-label label-${cat}">${cat === 'Fourniture' ? cat + 's' : cat + 's'}</div>`;
                 items.forEach(p => {
                     const q = (data.stocks[p.n] && data.stocks[p.n][curSite]) || 0;
                     cont.innerHTML += `<div class="product-card border-${cat}"><b>${p.n}</b><div class="controls"><button class="btn-qty" onclick="updQty('${p.n}',-1)">-</button><div class="qty-val">${q}</div><button class="btn-qty" onclick="updQty('${p.n}',1)">+</button></div></div>`;
@@ -382,8 +384,13 @@
             return (s['st-selve'] || 0) > 0 || (s['villenave'] || 0) > 0;
         });
         filtered.sort((a,b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c));
-        const rows = filtered.map(p => [p.c, p.n, data.stocks[p.n]['st-selve']||0, data.stocks[p.n]['villenave']||0]);
-        doc.autoTable({ head: [['Cat.', 'Produit', 'St Selve', 'Vill.']], body: rows, startY: 30, headStyles: {fillColor:[39,174,96]} });
+        const rows = filtered.map(p => {
+            const qSelve = data.stocks[p.n]['st-selve'] || 0;
+            const qVille = data.stocks[p.n]['villenave'] || 0;
+            const total = qSelve + qVille;
+            return [p.c, p.n, qSelve, qVille, total, ""];
+        });
+        doc.autoTable({ head: [['Cat.', 'Produit', 'St Selve', 'Vill.', 'Total', 'Check']], body: rows, startY: 30, headStyles: {fillColor:[39,174,96]} });
         doc.save("Inventaire_Stock.pdf");
     }
 </script>
