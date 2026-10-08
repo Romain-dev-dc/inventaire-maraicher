@@ -20,7 +20,8 @@
             --primary: #27ae60; --primary-dark: #1e8449;
             --secondary: #3498db; --bg: #f8fafc; --text: #1e293b;
             --selve-color: #27ae60; --ville-color: #3498db;
-            --cat-fruit: #f39c12; --cat-vege: #27ae60; --cat-aromate: #0097a7; --cat-epicerie: #9b59b6; --cat-fourniture: #7f8c8d;
+            --cat-fruit: #f39c12; --cat-vege: #27ae60; --cat-aromate: #0097a7; 
+            --cat-epicerie: #9b59b6; --cat-fourniture: #7f8c8d; --cat-plateaux: #e67e22;
             --radius: 18px; --shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
             --danger-color: rgb(175, 71, 40);
         }
@@ -53,6 +54,7 @@
         .label-Aromate { background: var(--cat-aromate); }
         .label-Épicerie { background: var(--cat-epicerie); }
         .label-Fourniture { background: var(--cat-fourniture); }
+        .label-Plateaux { background: var(--cat-plateaux); }
 
         .product-card { background: white; margin-bottom: 10px; padding: 15px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); border-left: 6px solid transparent; }
         .border-Fruit { border-left-color: var(--cat-fruit); }
@@ -60,6 +62,7 @@
         .border-Aromate { border-left-color: var(--cat-aromate); }
         .border-Épicerie { border-left-color: var(--cat-epicerie); }
         .border-Fourniture { border-left-color: var(--cat-fourniture); }
+        .border-Plateaux { border-left-color: var(--cat-plateaux); }
 
         .controls { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 12px; }
         .btn-qty { width: 44px; height: 44px; border: none; background: white; border-radius: 10px; font-size: 1.4rem; font-weight: bold; color: var(--primary); cursor: pointer; }
@@ -139,9 +142,20 @@
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow); margin-bottom:20px;">
         <h3 style="margin-top:0;">Ajouter un Produit</h3>
         <div class="field"><label>Nom du produit</label><input type="text" id="new-p-name" placeholder="Ex: Clémentine"></div>
-        <div class="field"><label>Catégorie</label><select id="new-p-cat"><option value="Fruit">Fruit</option><option value="Légume">Légume</option><option value="Aromate">Aromate</option><option value="Épicerie">Épicerie</option><option value="Fourniture">Fourniture</option></select></div>
+        <div class="field">
+            <label>Catégorie</label>
+            <select id="new-p-cat">
+                <option value="Fruit">Fruit</option>
+                <option value="Légume">Légume</option>
+                <option value="Aromate">Aromate</option>
+                <option value="Épicerie">Épicerie</option>
+                <option value="Fourniture">Fourniture</option>
+                <option value="Plateaux">Plateaux</option>
+            </select>
+        </div>
         <button class="btn-main" onclick="addProduct()">AJOUTER AU CATALOGUE</button>
     </div>
+
     <div style="background:white; padding:20px; border-radius:20px; box-shadow:var(--shadow);">
         <h3>Gestion Globale</h3>
         <button class="btn-main" onclick="generatePDF()" style="background:#1e293b; margin-bottom:10px;">📄 EXPORTER STOCK PDF</button>
@@ -149,250 +163,623 @@
             <i class="fa-solid fa-arrow-rotate-left"></i> RESET TOUTES LES QUANTITÉS
         </button>
     </div>
+
     <div id="admin-p-list" style="margin-top:20px;"></div>
 </div>
 
 <div id="modal-res" class="modal hidden">
     <div class="modal-box">
         <h3 style="margin: 0 0 20px 0; text-align: center; font-weight: 900;">Nouvelle Commande</h3>
-        <div class="field"><label>Lieu de retrait</label><select id="res-boutique"><option value="st-selve">St Selve</option><option value="villenave">Villenave</option></select></div>
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px;">
-            <div class="field"><label>Type</label><select id="res-type" onchange="toggleForm()"><option value="Retrait libre">Libre</option><option value="Panier">Panier</option><option value="Panier Garni">Garni</option><option value="Plateau">Plateau</option></select></div>
-            <div id="field-prix" class="field hidden"><label>Budget</label><select id="res-prix"><option value="10€">10€</option><option value="20€">20€</option></select></div>
+
+        <div class="field">
+            <label>Lieu de retrait</label>
+            <select id="res-boutique">
+                <option value="st-selve">St Selve</option>
+                <option value="villenave">Villenave</option>
+            </select>
         </div>
-        <div class="field"><label>Nom du client</label><input type="text" id="res-name" placeholder="Ex: Jean Dupont"></div>
-        <div class="field"><label>Téléphone</label><input type="tel" id="res-tel" placeholder="06 12 34 ..."></div>
-        <div class="field"><label>Notes</label><textarea id="res-desc" rows="2" placeholder="Détails (facultatif)"></textarea></div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px;">
+            <div class="field">
+                <label>Type</label>
+                <select id="res-type" onchange="toggleForm()">
+                    <option value="Retrait libre">Libre</option>
+                    <option value="Panier">Panier</option>
+                    <option value="Panier Garni">Garni</option>
+                    <option value="Plateau">Plateau</option>
+                </select>
+            </div>
+
+            <div id="field-prix" class="field hidden">
+                <label>Budget</label>
+                <select id="res-prix">
+                    <option value="10€">10€</option>
+                    <option value="20€">20€</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Nom du client</label>
+            <input type="text" id="res-name" placeholder="Ex: Jean Dupont">
+        </div>
+
+        <div class="field">
+            <label>Téléphone</label>
+            <input type="tel" id="res-tel" placeholder="06 12 34 ...">
+        </div>
+
+        <div class="field">
+            <label>Notes</label>
+            <textarea id="res-desc" rows="2" placeholder="Détails (facultatif)"></textarea>
+        </div>
+
         <button class="btn-main" onclick="saveRes()">ENREGISTRER</button>
         <button class="btn-cancel" onclick="closeModal()">Annuler</button>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = { databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" };
+    const firebaseConfig = { 
+        databaseURL: "https://stock-romain-default-rtdb.europe-west1.firebasedatabase.app/" 
+    };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const MON_CODE = "Tomate47*"; 
 
-    let curSite = 'st-selve', data = { products: [], stocks: {}, reservations: {} }, viewDate = new Date(), selDate = null;
+    let curSite = 'st-selve', 
+        data = { products: [], stocks: {}, reservations: {} }, 
+        viewDate = new Date(), 
+        selDate = null;
 
     db.ref('/').on('value', (snap) => {
         const d = snap.val() || {};
+
         data = { 
             products: d.products || [], 
             stocks: d.stocks || {}, 
             reservations: d.reservations || {} 
         };
+
         data.products.sort((a, b) => a.n.localeCompare(b.n));
-        renderStock(); renderCalendar(); if(selDate) showDay(selDate);
+
+        renderStock(); 
+        renderCalendar(); 
+
+        if(selDate) showDay(selDate);
     });
 
-    function isSessionValid() { const s = localStorage.getItem('adminSession'); return s && (new Date().getTime() - parseInt(s)) / 60000 < 20; }
-    function checkCode() { const p = prompt("Code Admin :"); if (p === MON_CODE) { localStorage.setItem('adminSession', new Date().getTime()); return true; } alert("Code incorrect"); return false; }
+    function isSessionValid() { 
+        const s = localStorage.getItem('adminSession'); 
+        return s && (new Date().getTime() - parseInt(s)) / 60000 < 20; 
+    }
+
+    function checkCode() { 
+        const p = prompt("Code Admin :"); 
+
+        if (p === MON_CODE) { 
+            localStorage.setItem('adminSession', new Date().getTime()); 
+            return true; 
+        } 
+
+        alert("Code incorrect"); 
+        return false; 
+    }
 
     function switchTab(t) {
         if (t === 'admin' && !isSessionValid() && !checkCode()) return;
+
         document.querySelectorAll('.tab, .content').forEach(el => el.classList.remove('active'));
+
         document.getElementById('tab-'+t).classList.add('active');
-        document.getElementById('view-' + (t === 'st-selve' || t === 'villenave' ? 'stock' : t)).classList.add('active');
-        if(t === 'st-selve' || t === 'villenave') { curSite = t; renderStock(); }
+
+        document.getElementById(
+            'view-' + (t === 'st-selve' || t === 'villenave' ? 'stock' : t)
+        ).classList.add('active');
+
+        if(t === 'st-selve' || t === 'villenave') { 
+            curSite = t; 
+            renderStock(); 
+        }
+
         if(t === 'admin') renderAdmin();
     }
 
     function renderStock() {
-        const cont = document.getElementById('product-list'); cont.innerHTML = '';
-        ["Fruit", "Légume", "Aromate", "Épicerie", "Fourniture"].forEach(cat => {
+        const cont = document.getElementById('product-list'); 
+        cont.innerHTML = '';
+
+        [
+            "Fruit", 
+            "Légume", 
+            "Aromate", 
+            "Épicerie", 
+            "Fourniture",
+            "Plateaux"
+        ].forEach(cat => {
+
             const items = data.products.filter(p => p.c === cat);
+
             if(items.length) {
-                cont.innerHTML += `<div class="cat-label label-${cat}">${cat === 'Fourniture' ? cat + 's' : cat + 's'}</div>`;
+
+                cont.innerHTML += `
+                    <div class="cat-label label-${cat}">
+                        ${cat}
+                    </div>
+                `;
+
                 items.forEach(p => {
+
                     const q = (data.stocks[p.n] && data.stocks[p.n][curSite]) || 0;
-                    cont.innerHTML += `<div class="product-card border-${cat}"><b>${p.n}</b><div class="controls"><button class="btn-qty" onclick="updQty('${p.n}',-1)">-</button><div class="qty-val">${q}</div><button class="btn-qty" onclick="updQty('${p.n}',1)">+</button></div></div>`;
+
+                    cont.innerHTML += `
+                        <div class="product-card border-${cat}">
+                            <b>${p.n}</b>
+
+                            <div class="controls">
+                                <button 
+                                    class="btn-qty" 
+                                    onclick="updQty('${p.n}',-1)"
+                                >-</button>
+
+                                <div class="qty-val">${q}</div>
+
+                                <button 
+                                    class="btn-qty" 
+                                    onclick="updQty('${p.n}',1)"
+                                >+</button>
+                            </div>
+                        </div>
+                    `;
                 });
             }
         });
     }
 
     function updQty(n, v) {
-        if(!data.stocks[n]) data.stocks[n] = {'st-selve':0, 'villenave':0};
-        data.stocks[n][curSite] = Math.max(0, (data.stocks[n][curSite]||0) + v);
+        if(!data.stocks[n]) {
+            data.stocks[n] = {
+                'st-selve':0, 
+                'villenave':0
+            };
+        }
+
+        data.stocks[n][curSite] = Math.max(
+            0, 
+            (data.stocks[n][curSite]||0) + v
+        );
+
         db.ref('stocks/'+n).set(data.stocks[n]);
     }
 
-    function changeMonth(o) { viewDate.setMonth(viewDate.getMonth() + o); renderCalendar(); }
+    function changeMonth(o) { 
+        viewDate.setMonth(viewDate.getMonth() + o); 
+        renderCalendar(); 
+    }
     
     function renderCalendar() {
         const header = document.getElementById('calendar-header');
         const grid = document.getElementById('calendar-grid');
-        header.innerHTML = ''; grid.innerHTML = '';
-        const m = viewDate.getMonth(), y = viewDate.getFullYear();
-        document.getElementById('cal-month').innerText = viewDate.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
-        ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(d => { header.innerHTML += `<div class="day-header">${d}</div>`; });
+
+        header.innerHTML = ''; 
+        grid.innerHTML = '';
+
+        const m = viewDate.getMonth(), 
+              y = viewDate.getFullYear();
+
+        document.getElementById('cal-month').innerText = 
+            viewDate.toLocaleDateString('fr-FR', {
+                month:'long', 
+                year:'numeric'
+            });
+
+        ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(d => { 
+            header.innerHTML += `<div class="day-header">${d}</div>`; 
+        });
+
         const firstDay = new Date(y, m, 1).getDay();
         const offset = (firstDay === 0 ? 7 : firstDay) - 1;
         const daysInMonth = new Date(y, m + 1, 0).getDate();
-        for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
+
+        for (let i = 0; i < offset; i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
         for(let d=1; d<=daysInMonth; d++) {
+
             const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const el = document.createElement('div'); el.className = 'calendar-day';
+
+            const el = document.createElement('div'); 
+            el.className = 'calendar-day';
+
             el.innerHTML = `<span>${d}</span>`;
-            if(dStr === new Date().toISOString().split('T')[0]) el.classList.add('today');
-            if(dStr === selDate) el.classList.add('selected');
-            const resToday = Object.values(data.reservations).filter(r => r.date === dStr);
+
+            if(dStr === new Date().toISOString().split('T')[0]) {
+                el.classList.add('today');
+            }
+
+            if(dStr === selDate) {
+                el.classList.add('selected');
+            }
+
+            const resToday = Object.values(data.reservations)
+                .filter(r => r.date === dStr);
+
             if(resToday.length) {
+
                 let dots = '<div class="dot-box">';
-                if(resToday.some(r => r.boutique === 'st-selve')) dots += '<div class="dot dot-s"></div>';
-                if(resToday.some(r => r.boutique === 'villenave')) dots += '<div class="dot dot-v"></div>';
+
+                if(resToday.some(r => r.boutique === 'st-selve')) {
+                    dots += '<div class="dot dot-s"></div>';
+                }
+
+                if(resToday.some(r => r.boutique === 'villenave')) {
+                    dots += '<div class="dot dot-v"></div>';
+                }
+
                 el.innerHTML += dots + '</div>';
             }
-            el.onclick = () => { selDate = dStr; renderCalendar(); showDay(dStr); };
+
+            el.onclick = () => { 
+                selDate = dStr; 
+                renderCalendar(); 
+                showDay(dStr); 
+            };
+
             grid.appendChild(el);
         }
     }
 
     function showDay(d) {
         const cont = document.getElementById('day-details');
-        const res = Object.entries(data.reservations).filter(([id, r]) => r.date === d);
+
+        const res = Object.entries(data.reservations)
+            .filter(([id, r]) => r.date === d);
         
-        // 1. ENTÊTE
-        let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h4 style="margin:0">Commandes du ${new Date(d).toLocaleDateString('fr-FR')}</h4>
-                        <button onclick="openModal('${d}')" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:800; font-size:0.8rem;">+ AJOUTER</button>
-                    </div>`;
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h4 style="margin:0">
+                    Commandes du ${new Date(d).toLocaleDateString('fr-FR')}
+                </h4>
+
+                <button 
+                    onclick="openModal('${d}')" 
+                    style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:10px; font-weight:800; font-size:0.8rem;"
+                >
+                    + AJOUTER
+                </button>
+            </div>
+        `;
         
         if(!res.length) {
-            html += `<p style="text-align:center; color:gray; font-size:0.9rem; padding:20px;">Rien de prévu pour ce jour.</p>`;
+
+            html += `
+                <p style="text-align:center; color:gray; font-size:0.9rem; padding:20px;">
+                    Rien de prévu pour ce jour.
+                </p>
+            `;
+
             cont.innerHTML = html;
             return;
         }
 
-        // 2. TICKETS
         res.forEach(([id, r]) => {
-            const color = r.boutique === 'st-selve' ? 'var(--selve-color)' : 'var(--ville-color)';
+
+            const color = r.boutique === 'st-selve' 
+                ? 'var(--selve-color)' 
+                : 'var(--ville-color)';
+
             const doneClass = r.done ? 'completed' : '';
+
             html += `
                 <div class="res-card ${doneClass}">
                     <div class="res-indicator" style="background:${color}"></div>
+
                     <div class="res-content">
                         <div class="res-header">
-                            <p class="res-client">${r.client || 'Client Inconnu'}</p>
-                            <span class="res-badge" style="color:${color}; background:${color}15">${r.boutique === 'st-selve' ? 'St Selve' : 'Villenave'}</span>
+                            <p class="res-client">
+                                ${r.client || 'Client Inconnu'}
+                            </p>
+
+                            <span 
+                                class="res-badge" 
+                                style="color:${color}; background:${color}15"
+                            >
+                                ${r.boutique === 'st-selve' ? 'St Selve' : 'Villenave'}
+                            </span>
                         </div>
+
                         <div class="res-info">
                             <span>📞 ${r.tel || '--'}</span>
                             <span style="color:#cbd5e1">|</span>
-                            <span style="font-weight:700; color:var(--primary)">${r.type} ${r.prix || ''}</span>
+                            <span style="font-weight:700; color:var(--primary)">
+                                ${r.type} ${r.prix || ''}
+                            </span>
                         </div>
-                        ${r.desc ? `<div class="res-notes">"${r.desc}"</div>` : ''}
+
+                        ${r.desc ? `
+                            <div class="res-notes">
+                                "${r.desc}"
+                            </div>
+                        ` : ''}
                     </div>
+
                     <div class="res-actions">
-                        <button class="btn-check" onclick="toggleDone('${id}', ${r.done})">
-                            ${r.done ? '<i class="fa-solid fa-arrow-rotate-left" style="color: var(--danger-color);"></i>' : '<i class="fa-solid fa-check" style="color: hsl(145, 63%, 42%);"></i>'}
+
+                        <button 
+                            class="btn-check" 
+                            onclick="toggleDone('${id}', ${r.done})"
+                        >
+                            ${r.done 
+                                ? '<i class="fa-solid fa-arrow-rotate-left" style="color: var(--danger-color);"></i>' 
+                                : '<i class="fa-solid fa-check" style="color: hsl(145, 63%, 42%);"></i>'
+                            }
                         </button>
-                        <button class="btn-del" onclick="delRes('${id}')">
+
+                        <button 
+                            class="btn-del" 
+                            onclick="delRes('${id}')"
+                        >
                             <i class="fa-solid fa-trash" style="color: var(--danger-color);"></i>
                         </button>
+
                     </div>
-                </div>`;
+                </div>
+            `;
         });
 
-        // 3. BILAN FINAL (CSS GRID FIXE)
-        html += `<hr style="border:none; border-top:1px dashed #cbd5e1; margin:20px 0;">`;
-        html += `<h4 style="text-align:center; font-size:0.8rem; color:#64748b; margin-bottom:10px;">BILAN DE LA JOURNÉE</h4>`;
-        html += `<div class="recap-grid">`;
+        html += `
+            <hr style="border:none; border-top:1px dashed #cbd5e1; margin:20px 0;">
+            <h4 style="text-align:center; font-size:0.8rem; color:#64748b; margin-bottom:10px;">
+                BILAN DE LA JOURNÉE
+            </h4>
+
+            <div class="recap-grid">
+        `;
 
         ['st-selve', 'villenave'].forEach(boutique => {
-            const labelBoutique = boutique === 'st-selve' ? 'St Selve' : 'Villenave';
-            const color = boutique === 'st-selve' ? 'var(--selve-color)' : 'var(--ville-color)';
+
+            const labelBoutique = boutique === 'st-selve' 
+                ? 'St Selve' 
+                : 'Villenave';
+
+            const color = boutique === 'st-selve' 
+                ? 'var(--selve-color)' 
+                : 'var(--ville-color)';
+
             const items = res.filter(([id, r]) => r.boutique === boutique);
             
             if(items.length) {
+
                 let comptes = {};
+
                 items.forEach(([id, r]) => {
+
                     let nomItem = r.type + (r.prix ? ' ' + r.prix : '');
+
                     comptes[nomItem] = (comptes[nomItem] || 0) + 1;
                 });
 
-                html += `<div class="recap-card" style="border-top: 4px solid ${color}">
-                            <b style="font-size:0.7rem; color:${color}; text-transform:uppercase;">${labelBoutique}</b>`;
+                html += `
+                    <div class="recap-card" style="border-top: 4px solid ${color}">
+                        <b style="font-size:0.7rem; color:${color}; text-transform:uppercase;">
+                            ${labelBoutique}
+                        </b>
+                `;
+
                 for(let key in comptes) {
-                    html += `<div class="recap-item"><span>${key}</span><b>x${comptes[key]}</b></div>`;
+
+                    html += `
+                        <div class="recap-item">
+                            <span>${key}</span>
+                            <b>x${comptes[key]}</b>
+                        </div>
+                    `;
                 }
+
                 html += `</div>`;
             }
         });
 
         html += `</div>`;
+
         cont.innerHTML = html;
     }
 
-    function openModal(d) { selDate = d; document.getElementById('modal-res').classList.remove('hidden'); }
-    function closeModal() { document.getElementById('modal-res').classList.add('hidden'); }
-    function toggleForm() { document.getElementById('field-prix').classList.toggle('hidden', document.getElementById('res-type').value !== 'Panier'); }
-    
-    function saveRes() {
-        const client = document.getElementById('res-name').value, boutique = document.getElementById('res-boutique').value;
-        const type = document.getElementById('res-type').value, tel = document.getElementById('res-tel').value;
-        const desc = document.getElementById('res-desc').value, prix = (type === 'Panier') ? document.getElementById('res-prix').value : '';
-        if(client) {
-            db.ref('reservations').push({ date: selDate, boutique, type, client, tel, prix, desc, done: false });
-            closeModal();
-            document.getElementById('res-name').value = ''; document.getElementById('res-tel').value = ''; document.getElementById('res-desc').value = '';
-        } else { alert("Saisir le nom du client"); }
+    function openModal(d) { 
+        selDate = d; 
+        document.getElementById('modal-res').classList.remove('hidden'); 
     }
 
-    function toggleDone(id, curStatus) { db.ref('reservations/'+id).update({ done: !curStatus }); }
-    function delRes(id) { if(confirm("Supprimer ?")) db.ref('reservations/'+id).remove(); }
+    function closeModal() { 
+        document.getElementById('modal-res').classList.add('hidden'); 
+    }
+
+    function toggleForm() { 
+        document.getElementById('field-prix').classList.toggle(
+            'hidden', 
+            document.getElementById('res-type').value !== 'Panier'
+        ); 
+    }
+    
+    function saveRes() {
+
+        const client = document.getElementById('res-name').value;
+        const boutique = document.getElementById('res-boutique').value;
+        const type = document.getElementById('res-type').value;
+        const tel = document.getElementById('res-tel').value;
+        const desc = document.getElementById('res-desc').value;
+        const prix = (type === 'Panier') 
+            ? document.getElementById('res-prix').value 
+            : '';
+
+        if(client) {
+
+            db.ref('reservations').push({ 
+                date: selDate, 
+                boutique, 
+                type, 
+                client, 
+                tel, 
+                prix, 
+                desc, 
+                done: false 
+            });
+
+            closeModal();
+
+            document.getElementById('res-name').value = '';
+            document.getElementById('res-tel').value = '';
+            document.getElementById('res-desc').value = '';
+
+        } else { 
+            alert("Saisir le nom du client"); 
+        }
+    }
+
+    function toggleDone(id, curStatus) { 
+        db.ref('reservations/'+id).update({ 
+            done: !curStatus 
+        }); 
+    }
+
+    function delRes(id) { 
+        if(confirm("Supprimer ?")) {
+            db.ref('reservations/'+id).remove(); 
+        }
+    }
     
     function addProduct() {
-        const n = document.getElementById('new-p-name').value.trim(), c = document.getElementById('new-p-cat').value;
-        if(n) { data.products.push({n, c}); db.ref('products').set(data.products); document.getElementById('new-p-name').value = ''; }
+
+        const n = document.getElementById('new-p-name').value.trim();
+        const c = document.getElementById('new-p-cat').value;
+
+        if(n) { 
+
+            data.products.push({
+                n, 
+                c
+            }); 
+
+            db.ref('products').set(data.products); 
+
+            document.getElementById('new-p-name').value = ''; 
+        }
     }
     
     function delProd(n) { 
+
         if(confirm("Supprimer ce produit ?")) { 
-            db.ref('products').set(data.products.filter(p => p.n !== n)); 
+
+            db.ref('products').set(
+                data.products.filter(p => p.n !== n)
+            ); 
+
             db.ref('stocks/'+n).remove(); 
         }
     }
 
     function resetStocks() { 
+
         if(confirm("Reset tout à 0 ?")) { 
+
             const r = {}; 
-            data.products.forEach(p => r[p.n] = {'st-selve':0, 'villenave':0}); 
+
+            data.products.forEach(p => {
+                r[p.n] = {
+                    'st-selve':0, 
+                    'villenave':0
+                };
+            }); 
+
             db.ref('stocks').set(r); 
         }
     }
 
     function renderAdmin() {
-        const cont = document.getElementById('admin-p-list'); cont.innerHTML = "<h4>Catalogue</h4>";
+
+        const cont = document.getElementById('admin-p-list'); 
+        cont.innerHTML = "<h4>Catalogue</h4>";
+
         data.products.forEach(p => {
-            cont.innerHTML += `<div class="product-card">
-                <span><b>${p.n}</b> (${p.c})</span>
-                <button onclick="delProd('${p.n}')" style="border:none; background:none; cursor:pointer;">
-                    <i class="fa-solid fa-trash" style="color: var(--danger-color);"></i>
-                </button>
-            </div>`;
+
+            cont.innerHTML += `
+                <div class="product-card">
+                    <span>
+                        <b>${p.n}</b> (${p.c})
+                    </span>
+
+                    <button 
+                        onclick="delProd('${p.n}')" 
+                        style="border:none; background:none; cursor:pointer;"
+                    >
+                        <i class="fa-solid fa-trash" style="color: var(--danger-color);"></i>
+                    </button>
+                </div>
+            `;
         });
     }
 
     function generatePDF() {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(18); doc.setTextColor(39, 174, 96); doc.text("INVENTAIRE PAYET PRIMEUR", 14, 20);
+
+        const { jsPDF } = window.jspdf; 
+        const doc = new jsPDF();
+
+        doc.setFontSize(18); 
+        doc.setTextColor(39, 174, 96); 
+        doc.text("INVENTAIRE PAYET PRIMEUR", 14, 20);
+
         let filtered = data.products.filter(p => {
-            const s = data.stocks[p.n] || {'st-selve':0, 'villenave':0};
-            return (s['st-selve'] || 0) > 0 || (s['villenave'] || 0) > 0;
+
+            const s = data.stocks[p.n] || {
+                'st-selve':0, 
+                'villenave':0
+            };
+
+            return (s['st-selve'] || 0) > 0 || 
+                   (s['villenave'] || 0) > 0;
         });
-        filtered.sort((a,b) => a.c === b.c ? a.n.localeCompare(b.n) : a.c.localeCompare(b.c));
+
+        filtered.sort((a,b) => 
+            a.c === b.c 
+                ? a.n.localeCompare(b.n) 
+                : a.c.localeCompare(b.c)
+        );
+
         const rows = filtered.map(p => {
-            const qSelve = data.stocks[p.n]['st-selve'] || 0;
-            const qVille = data.stocks[p.n]['villenave'] || 0;
+
+            const stock = data.stocks[p.n] || {
+                'st-selve':0, 
+                'villenave':0
+            };
+
+            const qSelve = stock['st-selve'] || 0;
+            const qVille = stock['villenave'] || 0;
             const total = qSelve + qVille;
-            return [p.c, p.n, qSelve, qVille, total, ""];
+
+            return [
+                p.c, 
+                p.n, 
+                qSelve, 
+                qVille, 
+                total, 
+                ""
+            ];
         });
-        doc.autoTable({ head: [['Cat.', 'Produit', 'St Selve', 'Vill.', 'Total', 'Check']], body: rows, startY: 30, headStyles: {fillColor:[39,174,96]} });
+
+        doc.autoTable({ 
+            head: [['Cat.', 'Produit', 'St Selve', 'Vill.', 'Total', 'Check']], 
+            body: rows, 
+            startY: 30, 
+            headStyles: {
+                fillColor:[39,174,96]
+            } 
+        });
+
         doc.save("Inventaire_Stock.pdf");
     }
 </script>
+
 </body>
 </html>
